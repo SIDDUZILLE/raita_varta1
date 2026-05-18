@@ -265,36 +265,177 @@ fun ProfileScreen(lang: String) {
 
 @Composable
 fun LoginPage(onNavigateToSignup: () -> Unit, onLoginSuccess: () -> Unit) {
-    var mobileNumber by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp).background(Color.White), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    var name by remember { mutableStateOf("") }
+    var mobileNumber by remember { mutableStateOf("+91") }
+
+    var nameError by remember { mutableStateOf<String?>(null) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
         Text("Raitha-Varta", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4A148C))
         Spacer(modifier = Modifier.height(40.dp))
-        OutlinedTextField(value = mobileNumber, onValueChange = { mobileNumber = it }, label = { Text("Mobile Number") }, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = onLoginSuccess, modifier = Modifier.fillMaxWidth().height(55.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))) { Text("Login") }
+
+        // Name Field - Only allows characters
+        OutlinedTextField(
+            value = name,
+            onValueChange = { input ->
+                if (input.all { it.isLetter() || it.isWhitespace() }) {
+                    name = input
+                    nameError = null
+                }
+            },
+            label = { Text("Full Name") },
+            isError = nameError != null,
+            supportingText = { if (nameError != null) Text(nameError!!) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "New farmer? Create Account", color = Color(0xFF4A148C), modifier = Modifier.clickable { onNavigateToSignup() }, textDecoration = TextDecoration.Underline)
+
+        // Phone Field - Indian Standard (+91)
+        OutlinedTextField(
+            value = mobileNumber,
+            onValueChange = { input ->
+                // Enforce +91 prefix and limit to 13 characters (+91 + 10 digits)
+                if (input.startsWith("+91")) {
+                    val digits = input.substring(3)
+                    if (digits.length <= 10 && digits.all { it.isDigit() }) {
+                        mobileNumber = input
+                        phoneError = null
+                    }
+                } else if (input.isEmpty() || "+91".startsWith(input)) {
+                    mobileNumber = "+91"
+                }
+            },
+            label = { Text("Phone Number") },
+            isError = phoneError != null,
+            supportingText = { if (phoneError != null) Text(phoneError!!) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            placeholder = { Text("+91XXXXXXXXXX") }
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = {
+                val isNameValid = name.trim().isNotEmpty()
+                val isPhoneValid = mobileNumber.matches(Regex("^\\+91[6789]\\d{9}$"))
+
+                if (!isNameValid) nameError = "Please enter your name"
+                if (!isPhoneValid) phoneError = "Enter a valid 10-digit Indian number"
+
+                if (isNameValid && isPhoneValid) {
+                    onLoginSuccess()
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(55.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))
+        ) {
+            Text("Login")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "New farmer? Create Account",
+            color = Color(0xFF4A148C),
+            modifier = Modifier.clickable { onNavigateToSignup() },
+            textDecoration = TextDecoration.Underline
+        )
     }
 }
 
 @Composable
 fun SignupPage(onNavigateToLogin: () -> Unit, onSignupSuccess: () -> Unit) {
     var fullName by remember { mutableStateOf("") }
-    var mobileNumber by remember { mutableStateOf("") }
+    var mobileNumber by remember { mutableStateOf("+91") }
     var password by remember { mutableStateOf("") }
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp).background(Color.White), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+
+    var nameError by remember { mutableStateOf<String?>(null) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
         Text("Create Account", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4A148C))
-        OutlinedTextField(value = fullName, onValueChange = { fullName = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = mobileNumber, onValueChange = { mobileNumber = it }, label = { Text("Mobile Number") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth())
-        Button(onClick = onSignupSuccess, modifier = Modifier.fillMaxWidth().height(55.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))) { Text("Sign Up") }
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = fullName,
+            onValueChange = { if (it.all { c -> c.isLetter() || c.isWhitespace() }) fullName = it },
+            label = { Text("Full Name") },
+            isError = nameError != null,
+            supportingText = { if (nameError != null) Text(nameError!!) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = mobileNumber,
+            onValueChange = { input ->
+                if (input.startsWith("+91")) {
+                    val digits = input.substring(3)
+                    if (digits.length <= 10 && digits.all { it.isDigit() }) mobileNumber = input
+                } else if (input.isEmpty() || "+91".startsWith(input)) {
+                    mobileNumber = "+91"
+                }
+            },
+            label = { Text("Mobile Number") },
+            isError = phoneError != null,
+            supportingText = { if (phoneError != null) Text(phoneError!!) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                val isNameValid = fullName.trim().isNotEmpty()
+                val isPhoneValid = mobileNumber.matches(Regex("^\\+91[6789]\\d{9}$"))
+                
+                if (!isNameValid) nameError = "Name is required" else nameError = null
+                if (!isPhoneValid) phoneError = "Invalid Indian number" else phoneError = null
+
+                if (isNameValid && isPhoneValid && password.isNotEmpty()) {
+                    onSignupSuccess()
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(55.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))
+        ) {
+            Text("Sign Up")
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Already have an account? Login", color = Color(0xFF4A148C), modifier = Modifier.clickable { onNavigateToLogin() }, textDecoration = TextDecoration.Underline)
+        Text(
+            text = "Already have an account? Login",
+            color = Color(0xFF4A148C),
+            modifier = Modifier.clickable { onNavigateToLogin() },
+            textDecoration = TextDecoration.Underline
+        )
     }
 }
 
