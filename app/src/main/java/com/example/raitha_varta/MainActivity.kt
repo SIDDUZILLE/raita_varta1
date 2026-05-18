@@ -1,7 +1,9 @@
 package com.example.raitha_varta
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -27,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,8 +38,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.raitha_varta.ui.theme.RaithaVartaTheme
 import kotlinx.coroutines.delay
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
 
-// --- 1. DATA MODEL ---
+// --- 1. DATA MODELS ---
+data class User(
+    val name: String,
+    val phone: String,
+    val password: String
+)
+
 data class AgriTip(
     val id: Int,
     val category: String,
@@ -46,6 +58,49 @@ data class AgriTip(
     val textEn: String,
     val isSuccessStory: Boolean = false
 )
+
+// --- USER MANAGER (JSON STORAGE) ---
+class UserManager(context: Context) {
+    private val file = File(context.filesDir, "users.json")
+
+    private fun getUsers(): MutableList<User> {
+        if (!file.exists()) return mutableListOf()
+        val jsonString = file.readText()
+        val jsonArray = JSONArray(jsonString)
+        val users = mutableListOf<User>()
+        for (i in 0 until jsonArray.length()) {
+            val obj = jsonArray.getJSONObject(i)
+            users.add(User(obj.getString("name"), obj.getString("phone"), obj.getString("password")))
+        }
+        return users
+    }
+
+    fun register(user: User): Boolean {
+        val users = getUsers()
+        if (users.any { it.phone == user.phone }) return false // Already exists
+        users.add(user)
+        val jsonArray = JSONArray()
+        users.forEach {
+            val obj = JSONObject()
+            obj.put("name", it.name)
+            obj.put("phone", it.phone)
+            obj.put("password", it.password)
+            jsonArray.put(obj)
+        }
+        file.writeText(jsonArray.toString())
+        return true
+    }
+
+    fun authenticate(phone: String, name: String): User? {
+        // Here we just check if the user exists with this name and phone
+        // In a real app, you'd check password too, but following user request for login taking name and number
+        return getUsers().find { it.phone == phone && it.name.equals(name, ignoreCase = true) }
+    }
+
+    fun authenticateWithPassword(phone: String, password: String): User? {
+        return getUsers().find { it.phone == phone && it.password == password }
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,31 +116,67 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContainer() {
+    val context = LocalContext.current
+    val userManager = remember { UserManager(context) }
+    
     var authState by remember { mutableStateOf("LOGIN") }
+    var currentUser by remember { mutableStateOf<User?>(null) }
+    
     var selectedScreen by remember { mutableStateOf(0) }
     var showWeatherDetail by remember { mutableStateOf(false) }
     var language by remember { mutableStateOf("KN") }
 
     when (authState) {
-        "SIGNUP" -> SignupPage(onNavigateToLogin = { authState = "LOGIN" }, onSignupSuccess = { authState = "LOGIN" })
-        "LOGIN" -> LoginPage(onNavigateToSignup = { authState = "SIGNUP" }, onLoginSuccess = { authState = "APP" })
+        "SIGNUP" -> SignupPage(
+            userManager = userManager,
+            onNavigateToLogin = { authState = "LOGIN" }, 
+            onSignupSuccess = { 
+                Toast.makeText(context, "Account Created! Please Login", Toast.LENGTH_SHORT).show()
+                authState = "LOGIN" 
+            }
+        )
+        "LOGIN" -> LoginPage(
+            userManager = userManager,
+            onNavigateToSignup = { authState = "SIGNUP" }, 
+            onLoginSuccess = { user ->
+                currentUser = user
+                authState = "APP" 
+            }
+        )
         else -> {
             Scaffold(
                 topBar = {
                     TopAppBar(
                         title = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(40.dp)) {
+                                Surface(
+                                    shape = CircleShape, 
+                                    color = Color.White, 
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clickable { 
+                                            // LOGOUT FEATURE
+                                            currentUser = null
+                                            authState = "LOGIN"
+                                            Toast.makeText(context, "Logged Out", Toast.LENGTH_SHORT).show()
+                                        }
+                                ) {
                                     Box(contentAlignment = Alignment.Center) {
-                                        Text("S", color = Color(0xFF4A148C), fontWeight = FontWeight.Bold)
+                                        val initial = currentUser?.name?.take(1)?.uppercase() ?: "U"
+                                        Text(initial, color = Color(0xFF4A148C), fontWeight = FontWeight.Bold)
                                     }
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
-                                // UPDATED NAME HERE
-                                Text("Siddu Zille", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                Text(currentUser?.name ?: "User", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         },
                         actions = {
+                            IconButton(onClick = { 
+                                currentUser = null
+                                authState = "LOGIN"
+                            }) {
+                                Text("🚪", fontSize = 20.sp) // Logout icon
+                            }
                             Row(
                                 modifier = Modifier
                                     .padding(end = 16.dp)
@@ -118,7 +209,7 @@ fun MainContainer() {
                                 HomeScreenContent(lang = language)
                             }
                             1 -> ExpertAskContent(lang = language)
-                            2 -> ProfileScreen(lang = language)
+                            2 -> ProfileScreen(lang = language, user = currentUser)
                         }
                     }
                 }
@@ -241,11 +332,10 @@ fun ExpertAskContent(lang: String) {
 }
 
 @Composable
-fun ProfileScreen(lang: String) {
+fun ProfileScreen(lang: String, user: User?) {
     var isEditing by remember { mutableStateOf(false) }
-    // UPDATED NAME HERE
-    var name by remember { mutableStateOf("Siddu Zille") }
-    var school by remember { mutableStateOf("Government High School Dadgi") }
+    var name by remember { mutableStateOf(user?.name ?: "User") }
+    var school by remember { mutableStateOf("Raitha Varta Farmer") }
 
     Column(modifier = Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Box(modifier = Modifier.size(100.dp).background(Color(0xFFE8F5E9), CircleShape), contentAlignment = Alignment.Center) { Text("👤", fontSize = 50.sp) }
@@ -264,12 +354,13 @@ fun ProfileScreen(lang: String) {
 }
 
 @Composable
-fun LoginPage(onNavigateToSignup: () -> Unit, onLoginSuccess: () -> Unit) {
+fun LoginPage(userManager: UserManager, onNavigateToSignup: () -> Unit, onLoginSuccess: (User) -> Unit) {
     var name by remember { mutableStateOf("") }
     var mobileNumber by remember { mutableStateOf("+91") }
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var phoneError by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -334,7 +425,12 @@ fun LoginPage(onNavigateToSignup: () -> Unit, onLoginSuccess: () -> Unit) {
                 if (!isPhoneValid) phoneError = "Enter a valid 10-digit Indian number"
 
                 if (isNameValid && isPhoneValid) {
-                    onLoginSuccess()
+                    val user = userManager.authenticate(mobileNumber, name)
+                    if (user != null) {
+                        onLoginSuccess(user)
+                    } else {
+                        Toast.makeText(context, "User not found! Please Signup.", Toast.LENGTH_SHORT).show()
+                    }
                 }
             },
             modifier = Modifier
@@ -356,13 +452,14 @@ fun LoginPage(onNavigateToSignup: () -> Unit, onLoginSuccess: () -> Unit) {
 }
 
 @Composable
-fun SignupPage(onNavigateToLogin: () -> Unit, onSignupSuccess: () -> Unit) {
+fun SignupPage(userManager: UserManager, onNavigateToLogin: () -> Unit, onSignupSuccess: () -> Unit) {
     var fullName by remember { mutableStateOf("") }
     var mobileNumber by remember { mutableStateOf("+91") }
     var password by remember { mutableStateOf("") }
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var phoneError by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -418,7 +515,12 @@ fun SignupPage(onNavigateToLogin: () -> Unit, onSignupSuccess: () -> Unit) {
                 if (!isPhoneValid) phoneError = "Invalid Indian number" else phoneError = null
 
                 if (isNameValid && isPhoneValid && password.isNotEmpty()) {
-                    onSignupSuccess()
+                    val success = userManager.register(User(fullName, mobileNumber, password))
+                    if (success) {
+                        onSignupSuccess()
+                    } else {
+                        Toast.makeText(context, "User already exists!", Toast.LENGTH_SHORT).show()
+                    }
                 }
             },
             modifier = Modifier
