@@ -91,10 +91,8 @@ class UserManager(context: Context) {
         return true
     }
 
-    fun authenticate(phone: String, name: String): User? {
-        // Here we just check if the user exists with this name and phone
-        // In a real app, you'd check password too, but following user request for login taking name and number
-        return getUsers().find { it.phone == phone && it.name.equals(name, ignoreCase = true) }
+    fun authenticate(name: String, password: String): User? {
+        return getUsers().find { it.name.equals(name, ignoreCase = true) && it.password == password }
     }
 
     fun authenticateWithPassword(phone: String, password: String): User? {
@@ -144,30 +142,40 @@ fun MainContainer() {
             }
         )
         else -> {
+            var showMenu by remember { mutableStateOf(false) }
             Scaffold(
                 topBar = {
                     TopAppBar(
                         title = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Surface(
-                                    shape = CircleShape, 
-                                    color = Color.White, 
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clickable { 
-                                            // LOGOUT FEATURE
-                                            currentUser = null
-                                            authState = "LOGIN"
-                                            Toast.makeText(context, "Logged Out", Toast.LENGTH_SHORT).show()
-                                        }
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        val initial = currentUser?.name?.take(1)?.uppercase() ?: "U"
-                                        Text(initial, color = Color(0xFF4A148C), fontWeight = FontWeight.Bold)
+                                Box {
+                                    IconButton(onClick = { showMenu = true }) {
+                                        Text("☰", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                    DropdownMenu(
+                                        expanded = showMenu,
+                                        onDismissRequest = { showMenu = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Edit Profile") },
+                                            onClick = { 
+                                                showMenu = false
+                                                selectedScreen = 2 // Navigate to Profile
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Logout") },
+                                            onClick = { 
+                                                showMenu = false
+                                                currentUser = null
+                                                authState = "LOGIN"
+                                                Toast.makeText(context, "Logged Out", Toast.LENGTH_SHORT).show()
+                                            }
+                                        )
                                     }
                                 }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(currentUser?.name ?: "User", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(currentUser?.name ?: "Raitha-Varta", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                             }
                         },
                         actions = {
@@ -356,10 +364,11 @@ fun ProfileScreen(lang: String, user: User?) {
 @Composable
 fun LoginPage(userManager: UserManager, onNavigateToSignup: () -> Unit, onLoginSuccess: (User) -> Unit) {
     var name by remember { mutableStateOf("") }
-    var mobileNumber by remember { mutableStateOf("+91") }
+    var password by remember { mutableStateOf("") }
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var phoneError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
     Column(
@@ -373,7 +382,6 @@ fun LoginPage(userManager: UserManager, onNavigateToSignup: () -> Unit, onLoginS
         Text("Raitha-Varta", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4A148C))
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Name Field - Only allows characters
         OutlinedTextField(
             value = name,
             onValueChange = { input ->
@@ -391,27 +399,17 @@ fun LoginPage(userManager: UserManager, onNavigateToSignup: () -> Unit, onLoginS
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Phone Field - Indian Standard (+91)
         OutlinedTextField(
-            value = mobileNumber,
-            onValueChange = { input ->
-                // Enforce +91 prefix and limit to 13 characters (+91 + 10 digits)
-                if (input.startsWith("+91")) {
-                    val digits = input.substring(3)
-                    if (digits.length <= 10 && digits.all { it.isDigit() }) {
-                        mobileNumber = input
-                        phoneError = null
-                    }
-                } else if (input.isEmpty() || "+91".startsWith(input)) {
-                    mobileNumber = "+91"
-                }
+            value = password,
+            onValueChange = { 
+                password = it
+                passwordError = null
             },
-            label = { Text("Phone Number") },
-            isError = phoneError != null,
-            supportingText = { if (phoneError != null) Text(phoneError!!) },
+            label = { Text("Password") },
+            isError = passwordError != null,
+            supportingText = { if (passwordError != null) Text(passwordError!!) },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            placeholder = { Text("+91XXXXXXXXXX") }
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -419,17 +417,17 @@ fun LoginPage(userManager: UserManager, onNavigateToSignup: () -> Unit, onLoginS
         Button(
             onClick = {
                 val isNameValid = name.trim().isNotEmpty()
-                val isPhoneValid = mobileNumber.matches(Regex("^\\+91[6789]\\d{9}$"))
+                val isPasswordValid = password.isNotEmpty()
 
                 if (!isNameValid) nameError = "Please enter your name"
-                if (!isPhoneValid) phoneError = "Enter a valid 10-digit Indian number"
+                if (!isPasswordValid) passwordError = "Please enter your password"
 
-                if (isNameValid && isPhoneValid) {
-                    val user = userManager.authenticate(mobileNumber, name)
+                if (isNameValid && isPasswordValid) {
+                    val user = userManager.authenticate(name, password)
                     if (user != null) {
                         onLoginSuccess(user)
                     } else {
-                        Toast.makeText(context, "User not found! Please Signup.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Invalid Credentials! Please check Name/Password.", Toast.LENGTH_SHORT).show()
                     }
                 }
             },
@@ -459,7 +457,10 @@ fun SignupPage(userManager: UserManager, onNavigateToLogin: () -> Unit, onSignup
 
     var nameError by remember { mutableStateOf<String?>(null) }
     var phoneError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+
+    val passwordRegex = Regex("^(?=.*[A-Z])(?=.*\\d).{6,}$")
 
     Column(
         modifier = Modifier
@@ -499,8 +500,13 @@ fun SignupPage(userManager: UserManager, onNavigateToLogin: () -> Unit, onSignup
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it
+                passwordError = null
+            },
             label = { Text("Password") },
+            isError = passwordError != null,
+            supportingText = { if (passwordError != null) Text(passwordError!!) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -510,11 +516,13 @@ fun SignupPage(userManager: UserManager, onNavigateToLogin: () -> Unit, onSignup
             onClick = {
                 val isNameValid = fullName.trim().isNotEmpty()
                 val isPhoneValid = mobileNumber.matches(Regex("^\\+91[6789]\\d{9}$"))
+                val isPasswordStrong = password.matches(passwordRegex)
                 
                 if (!isNameValid) nameError = "Name is required" else nameError = null
                 if (!isPhoneValid) phoneError = "Invalid Indian number" else phoneError = null
+                if (!isPasswordStrong) passwordError = "Min 6 chars, 1 Uppercase, 1 Number" else passwordError = null
 
-                if (isNameValid && isPhoneValid && password.isNotEmpty()) {
+                if (isNameValid && isPhoneValid && isPasswordStrong) {
                     val success = userManager.register(User(fullName, mobileNumber, password))
                     if (success) {
                         onSignupSuccess()
