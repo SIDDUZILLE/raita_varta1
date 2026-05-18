@@ -260,36 +260,51 @@ fun MainContainer() {
 @Composable
 fun HomeScreenContent(lang: String, onSpeak: (String) -> Unit) {
     val allTips = listOf(
-        AgriTip(1, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad", "ಬೆಳಿಗ್ಗೆ 10 ಗಂಟೆಯ ಮೊದಲು ಗದ್ದೆಗೆ ನೀರುಣಿಸುವುದು ಉತ್ತಮ. ಇದು ಮಣ್ಣಿನಲ್ಲಿ ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Watering before 10 AM is ideal. This helps the soil retain moisture."),
-        AgriTip(2, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1590483727827-024357228-91a4daadcfea", "ಕಬ್ಬಿನ ನಾಟಿ ಮಾಡಿದ 30 ದಿನಗಳ ನಂತರ ಮೊದಲ ಗೊಬ್ಬರ ನೀಡಿ. ಇದು ಬೆಳವಣಿಗೆ ವೇಗಗೊಳಿಸುತ್ತದೆ.", "Apply fertilizer 30 days after planting sugarcane. This accelerates growth."),
-        AgriTip(3, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಆಧಾರ ನೀಡಿ. ಇದು ಹಣ್ಣುಗಳು ಕೊಳೆಯುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Provide support to tomato plants. This prevents fruit rot."),
-        AgriTip(4, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510", "ಈರುಳ್ಳಿ ಕೊಯ್ಲಿಗೆ 15 ದಿನ ಮೊದಲೇ ನೀರು ನಿಲ್ಲಿಸಿ. ಇದು ಈರುಳ್ಳಿ ಬಾಳಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Stop watering 15 days before harvest. This improves storage life."),
-        AgriTip(5, "Chilli", "🌶️", "https://images.unsplash.com/photo-1584483766114-2cdf6a27d188", "ಎಲೆ ಮುದುರು ರೋಗ ಕಂಡರೆ ತಕ್ಷಣ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಕೀಟಗಳನ್ನು ತಡೆಯುತ್ತದೆ.", "Spray neem oil if you notice leaf curl disease in chilli plants. This naturally prevents pest spread."),
-        AgriTip(6, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ರಾಯಚೂರಿನ ಮಲ್ಲಮ್ಮ ಅವರು ಸಕಾಲದಲ್ಲಿ ಕಳೆ ಕೀಳುವ ಮೂಲಕ ಲಾಭ ಗಳಿದ್ದಾರೆ. ನೀವು ಸಹ ಈ ವಿಧಾನದಿಂದ ಶ್ರಮ ಉಳಿಸಬಹುದು.", "Mallamma from Raichur doubled profits by timely weeding. You can also save effort using this method.", true),
-        AgriTip(7, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d", "ಭತ್ತದ ಗದ್ದೆಯಲ್ಲಿ ಸಾಲು ನಾಟಿ ಮಾಡುವುದರಿಂದ ಕಳೆ ತೆಗೆಯಲು ಸುಲಭವಾಗುತ್ತದೆ ಮತ್ತು ಗಾಳಿಯ ಸಂಚಾರ ಹೆಚ್ಚುತ್ತದೆ.", "Row planting in paddy fields makes weeding easier and improves air circulation."),
-        AgriTip(8, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊಗೆ ಕ್ಯಾಲ್ಸಿಯಂ ಕೊರತೆಯಾದರೆ ಹಣ್ಣಿನ ತಳಭಾಗ ಕೊಳೆಯಬಹುದು. ಸುಣ್ಣದ ತಿಳಿನೀರು ಬಳಸಿ.", "Calcium deficiency in tomatoes causes blossom end rot. Use lime water treatment."),
-        AgriTip(9, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಧಾರವಾಡದ ಮಂಜುನಾಥ್ ಅವರು ಸಮಗ್ರ ಕೃಷಿ ಪದ್ಧತಿಯಿಂದ ವಾರ್ಷಿಕ 5 ಲಕ್ಷ ಆದಾಯ ಗಳಿಸುತ್ತಿದ್ದಾರೆ.", "Manjunath from Dharwad earns 5 lakhs annually through integrated farming systems.", true),
-        AgriTip(10, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad", "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money."),
-        AgriTip(11, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಚಿಕ್ಕಮಗಳೂರಿನ ಕಾವೇರಿ ಅವರು ಸಾವಯವ ಕಾಫಿ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುತ್ತಿದ್ದಾರೆ.", "Kaveri from Chikmagalur exports organic coffee to foreign countries.", true),
-        AgriTip(12, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1590483727827-024357228-91a4daadcfea", "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility."),
-        AgriTip(13, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d", "ಭತ್ತಕ್ಕೆ ಎಸ್.ಆರ್.ಐ (SRI) ಪದ್ಧತಿ ಅಳವಡಿಸುವುದರಿಂದ ಕಡಿಮೆ ನೀರಿನಲ್ಲಿ ಹೆಚ್ಚು ಇಳುವರಿ ಪಡೆಯಬಹುದು.", "Adopting SRI method in paddy yields more with less water."),
-        AgriTip(14, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d", "ಸತುವು (Zinc) ಕೊರತೆ ಕಾಣಿಸಿಕೊಂಡರೆ ಪ್ರತಿ ಎಕರೆಗೆ 10 ಕೆಜಿ ಜಿಂಕ್ ಸಲ್ಫೇಟ್ ಸಿಂಪಡಿಸಿ.", "Spray 10kg Zinc Sulphate per acre if deficiency symptoms appear."),
-        AgriTip(15, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d", "ಕೊನೊ ವೀಡರ್ ಬಳಸಿ ಕಳೆ ತೆಗೆಯುವುದರಿಂದ ಮಣ್ಣಿಗೆ ಗಾಳಿ ಸಂಚಾರ ಹೆಚ್ಚಿ ಬೇರುಗಳು ಚೆನ್ನಾಗಿ ಬೆಳೆಯುತ್ತವೆ.", "Using Cono weeder for weeding increases soil aeration and root growth."),
-        AgriTip(16, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1590483727827-024357228-91a4daadcfea", "ಕಬ್ಬಿನ ಸೋಗೆಯನ್ನು ಸುಡಬೇಡಿ, ಅದನ್ನು ಹೊದಿಕೆಯಾಗಿ ಬಳಸಿ. ಇದು ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Don't burn sugarcane trash; use it for mulching to retain moisture."),
-        AgriTip(17, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1590483727827-024357228-91a4daadcfea", "ಕಬ್ಬಿನ ನಾಟಿಗೆ ಮೊಗ್ಗು ಚಿಪ್ (Bud chip) ವಿಧಾನ ಬಳಸುವುದರಿಂದ ಬೀಜದ ಖರ್ಚು ಉಳಿಸಬಹುದು.", "Using bud chip method for sugarcane planting saves seed cost."),
-        AgriTip(18, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510", "ಈರುಳ್ಳಿ ಬೀಜಗಳನ್ನು ಬಿತ್ತುವ ಮೊದಲು ಕಾರ್ಬೆಂಡಾಜಿಮ್‌ನಿಂದ ಉಪಚರಿಸಿ. ಇದು ಕೊಳೆ ರೋಗ ತಡೆಯುತ್ತದೆ.", "Treat onion seeds with Carbendazim before sowing to prevent rot."),
-        AgriTip(19, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510", "ಗಡ್ಡೆ ಬಲಿಯುವ ಹಂತದಲ್ಲಿ ಅತಿಯಾದ ಸಾರಜನಕ ಗೊಬ್ಬರ ನೀಡಬೇಡಿ. ಇದು ಸಂಗ್ರಹಣಾ ಸಾಮರ್ಥ್ಯ ಕುಗ್ಗಿಸುತ್ತದೆ.", "Avoid excess Nitrogen at bulb maturity as it reduces storage life."),
-        AgriTip(20, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510", "ಈರುಳ್ಳಿಯನ್ನು ನೆರಳಿನಲ್ಲಿ ಚೆನ್ನಾಗಿ ಒಣಗಿಸಿದ ನಂತರವೇ ಶೇಖರಿಸಿ. ಇದು ಬಾಳಿಕೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Store onions only after proper curing in shade to increase shelf life."),
-        AgriTip(21, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಗದಗದ ಬಸಪ್ಪ ಅವರು ಈರುಳ್ಳಿಗೆ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ ಶೇ.40 ರಷ್ಟು ನೀರು ಉಳಿಸಿ ಉತ್ತಮ ಲಾಭ ಗಳಿದ್ದಾರೆ.", "Basappa from Gadag saved 40% water and earned more using drip irrigation for onions.", true),
-        AgriTip(22, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಮಂಡ್ಯದ ಗಿರಿಜಾ ಅವರು ಸಾವಯವ ಪದ್ಧತಿಯಲ್ಲಿ ಕಬ್ಬು ಬೆಳೆದು ಸಕ್ಕರೆ ಕಾರ್ಖಾನೆಯಿಂದ ಪ್ರಶಸ್ತಿ ಪಡೆದಿದ್ದಾರೆ.", "Girija from Mandya won awards for growing organic sugarcane.", true),
-        AgriTip(23, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಕೊಪ್ಪಳದ ಶಿವಾನಂದ್ ಅವರು ದಾಳಿಂಬೆ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುವಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿದ್ದಾರೆ.", "Shivanand from Koppal successfully exports pomegranates to foreign markets.", true),
-        AgriTip(24, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ದಾವಣಗೆರೆಯ ಲಕ್ಷ್ಮಿ ಅವರು ಎರೆಹುಳು ಗೊಬ್ಬರ ತಯಾರಿಕೆಯಿಂದ ಸ್ವಾವಲಂಬಿ ಜೀವನ ನಡೆಸುತ್ತಿದ್ದಾರೆ.", "Lakshmi from Davangere is self-reliant through vermicompost production.", true),
-        AgriTip(25, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಬೆಳಗಾವಿಯ ಸುರೇಶ್ ಅವರು ಮಿಶ್ರ ಬೆಳೆ ಪದ್ಧತಿಯಿಂದ ವರ್ಷವಿಡೀ ಆದಾಯ ಪಡೆಯುತ್ತಿದ್ದಾರೆ.", "Suresh from Belagavi gets year-round income through mixed cropping.", true),
-        AgriTip(26, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಪ್ರತಿ 10 ದಿನಕ್ಕೊಮ್ಮೆ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ಕೀಟಗಳನ್ನು ದೂರವಿಡುತ್ತದೆ.", "Spray neem oil on tomato plants every 10 days to keep pests away."),
-        AgriTip(27, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಹಣ್ಣು ಬಿಡುವಾಗ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ. ಇದು ಗಿಡದ ಬುಡಕ್ಕೆ ನೇರವಾಗಿ ನೀರು ತಲುಪಿಸುತ್ತದೆ.", "Use drip irrigation for tomatoes to ensure water reaches the roots directly."),
-        AgriTip(28, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಗಿಡಗಳ ಕೆಳಗಿನ ಒಣಗಿದ ಎಲೆಗಳನ್ನು ತೆಗೆಯಿರಿ. ಇದು ರೋಗ ಹರಡುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Remove dry lower leaves from tomato plants to prevent disease spread."),
-        AgriTip(29, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಕೊಯ್ಲಿಗೆ ಮುನ್ನ ಬೆಳಗ್ಗೆ ಅಥವಾ ಸಂಜೆ ವೇಳೆ ನೀರು ಹಾಯಿಸುವುದು ಉತ್ತಮ.", "Watering tomatoes in the morning or evening before harvest is better."),
-        AgriTip(30, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಬೆಳೆಯಲ್ಲಿ ಬ್ಯಾಕ್ಟೀರಿಯಲ್ ವಿಲ್ಟ್ ತಡೆಗಟ್ಟಲು ಬ್ಲೀಚಿಂಗ್ ಪೌಡರ್ ಬಳಸಿ.", "Use bleaching powder to prevent bacterial wilt in tomato crops.")
+        // Daily Tips (3)
+        AgriTip(1, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad?q=80&w=500", "ಬೆಳಿಗ್ಗೆ 10 ಗಂಟೆಯ ಮೊದಲು ಗದ್ದೆಗೆ ನೀರುಣಿಸುವುದು ಉತ್ತಮ. ಇದು ಮಣ್ಣಿನಲ್ಲಿ ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Watering before 10 AM is ideal. This helps the soil retain moisture."),
+        AgriTip(2, "Daily Tip", "📢", "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=500", "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money."),
+        AgriTip(3, "Daily Tip", "📢", "https://images.unsplash.com/photo-1599148482840-d7d96558239a?q=80&w=500", "ಕೃಷಿಯಲ್ಲಿ ನೈಸರ್ಗಿಕ ಗೊಬ್ಬರ ಬಳಸಿ. ಇದು ಮಣ್ಣಿನ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Use organic manure in farming. It increases soil fertility."),
+
+        // Sugarcane (5) - Fixed Image
+        AgriTip(4, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ಕಬ್ಬಿನ ನಾಟಿ ಮಾಡಿದ 30 ದಿನಗಳ ನಂತರ ಮೊದಲ ಗೊಬ್ಬರ ನೀಡಿ. ಇದು ಬೆಳವಣಿಗೆ ವೇಗಗೊಳಿಸುತ್ತದೆ.", "Apply fertilizer 30 days after planting sugarcane. This accelerates growth."),
+        AgriTip(5, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility."),
+        AgriTip(6, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ಕಬ್ಬಿನ ಸೋಗೆಯನ್ನು ಸುಡಬೇಡಿ, ಅದನ್ನು ಹೊದಿಕೆಯಾಗಿ ಬಳಸಿ. ಇದು ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Don't burn sugarcane trash; use it for mulching to retain moisture."),
+        AgriTip(7, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ಕಬ್ಬಿನ ನಾಟಿಗೆ ಮೊಗ್ಗು ಚಿಪ್ (Bud chip) ವಿಧಾನ ಬಳಸುವುದರಿಂದ ಬೀಜದ ಖರ್ಚು ಉಳಿಸಬಹುದು.", "Using bud chip method for sugarcane planting saves seed cost."),
+        AgriTip(8, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ನಾಟಿ ಮಾಡುವಾಗ ಸಾಲುಗಳ ನಡುವೆ 4 ಅಡಿ ಅಂತರ ಕಾಪಾಡಿ.", "Maintain 4 feet distance between rows during planting."),
+
+        // Tomato (6)
+        AgriTip(9, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಆಧಾರ ನೀಡಿ. ಇದು ಹಣ್ಣುಗಳು ಕೊಳೆಯುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Provide support to tomato plants. This prevents fruit rot."),
+        AgriTip(10, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊಗೆ ಕ್ಯಾಲ್ಸಿಯಂ ಕೊರತೆಯಾದರೆ ಹಣ್ಣಿನ ತಳಭಾಗ ಕೊಳೆಯಬಹುದು. ಸುಣ್ಣದ ತಿಳಿನೀರು ಬಳಸಿ.", "Calcium deficiency in tomatoes causes blossom end rot. Use lime water treatment."),
+        AgriTip(11, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಪ್ರತಿ 10 ದಿನಕ್ಕೊಮ್ಮೆ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ಕೀಟಗಳನ್ನು ದೂರವಿಡುತ್ತದೆ.", "Spray neem oil on tomato plants every 10 days to keep pests away."),
+        AgriTip(12, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊ ಹಣ್ಣು ಬಿಡುವಾಗ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ. ಇದು ಗಿಡದ ಬುಡಕ್ಕೆ ನೇರವಾಗಿ ನೀರು ತಲುಪಿಸುತ್ತದೆ.", "Use drip irrigation for tomatoes to ensure water reaches the roots directly."),
+        AgriTip(13, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊ ಗಿಡಗಳ ಕೆಳಗಿನ ಒಣಗಿದ ಎಲೆಗಳನ್ನು ತೆಗೆಯಿರಿ. ಇದು ರೋಗ ಹರಡುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Remove dry lower leaves from tomato plants to prevent disease spread."),
+        AgriTip(14, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಬ್ಯಾಕ್ಟೀರಿಯಲ್ ವಿಲ್ಟ್ ತಡೆಗಟ್ಟಲು ಬ್ಲೀಚಿಂಗ್ ಪೌಡರ್ ಬಳಸಿ.", "Use bleaching powder to prevent bacterial wilt."),
+
+        // Onion (5)
+        AgriTip(15, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಈರುಳ್ಳಿ ಕೊಯ್ಲಿಗೆ 15 ದಿನ ಮೊದಲೇ ನೀರು ನಿಲ್ಲಿಸಿ. ಇದು ಈರುಳ್ಳಿ ಬಾಳಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Stop watering 15 days before harvest. This improves storage life."),
+        AgriTip(16, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಈರುಳ್ಳಿ ಬೀಜಗಳನ್ನು ಬಿತ್ತುವ ಮೊದಲು ಕಾರ್ಬೆಂಡಾಜಿಮ್‌ನಿಂದ ಉಪಚರಿಸಿ. ಇದು ಕೊಳೆ ರೋಗ ತಡೆಯುತ್ತದೆ.", "Treat onion seeds with Carbendazim before sowing to prevent rot."),
+        AgriTip(17, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಗಡ್ಡೆ ಬಲಿಯುವ ಹಂತದಲ್ಲಿ ಅತಿಯಾದ ಸಾರಜನಕ ಗೊಬ್ಬರ ನೀಡಬೇಡಿ. ಇದು ಸಂಗ್ರಹಣಾ ಸಾಮರ್ಥ್ಯ ಕುಗ್ಗಿಸುತ್ತದೆ.", "Avoid excess Nitrogen at bulb maturity as it reduces storage life."),
+        AgriTip(18, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಈರುಳ್ಳಿಯನ್ನು ನೆರಳಿನಲ್ಲಿ ಚೆನ್ನಾಗಿ ಒಣಗಿಸಿದ ನಂತರವೇ ಶೇಖರಿಸಿ. ಇದು ಬಾಳಿಕೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Store onions only after proper curing in shade to increase shelf life."),
+        AgriTip(19, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಕಳೆ ನಿಯಂತ್ರಣಕ್ಕೆ ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಎಡೆಕುಂಟೆ ಹೊಡೆಯಿರಿ.", "Timely inter-cultivation for weed control."),
+
+        // Paddy (5)
+        AgriTip(20, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಭತ್ತದ ಗದ್ದೆಯಲ್ಲಿ ಸಾಲು ನಾಟಿ ಮಾಡುವುದರಿಂದ ಕಳೆ ತೆಗೆಯಲು ಸುಲಭವಾಗುತ್ತದೆ ಮತ್ತು ಗಾಳಿಯ ಸಂಚಾರ ಹೆಚ್ಚುತ್ತದೆ.", "Row planting in paddy fields makes weeding easier and improves air circulation."),
+        AgriTip(21, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಭತ್ತಕ್ಕೆ ಎಸ್.ಆರ್.ಐ (SRI) ಪದ್ಧತಿ ಅಳವಡಿಸುವುದರಿಂದ ಕಡಿಮೆ ನೀರಿನಲ್ಲಿ ಹೆಚ್ಚು ಇಳುವರಿ ಪಡೆಯಬಹುದು.", "Adopting SRI method in paddy yields more with less water."),
+        AgriTip(22, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಸತುವು (Zinc) ಕೊರತೆ ಕಾಣಿಸಿಕೊಂಡರೆ ಪ್ರತಿ ಎಕರೆಗೆ 10 ಕೆಜಿ ಜಿಂಕ್ ಸಲ್ಫೇಟ್ ಸಿಂಪಡಿಸಿ.", "Spray 10kg Zinc Sulphate per acre if deficiency symptoms appear."),
+        AgriTip(23, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಕೊನೊ ವೀಡರ್ ಬಳಸಿ ಕಳೆ ತೆಗೆಯುವುದರಿಂದ ಮಣ್ಣಿಗೆ ಗಾಳಿ ಸಂಚಾರ ಹೆಚ್ಚಿ ಬೇರುಗಳು ಚೆನ್ನಾಗಿ ಬೆಳೆಯುತ್ತವೆ.", "Using Cono weeder for weeding increases soil aeration and root growth."),
+        AgriTip(24, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಕಂದು ಜಿಗಿ ಹುಳು ಬಾಧೆ ತಡೆಗಟ್ಟಲು ಬೆಳಕು ಬಲೆ ಬಳಸಿ.", "Use light traps to control Brown Plant Hopper."),
+
+        // Chilli (2) - Fixed Image
+        AgriTip(25, "Chilli", "🌶️", "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?q=80&w=500", "ಎಲೆ ಮುದುರು ರೋಗ ಕಂಡರೆ ತಕ್ಷಣ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಕೀಟಗಳನ್ನು ತಡೆಯುತ್ತದೆ.", "Spray neem oil if you notice leaf curl disease in chilli plants. This naturally prevents pest spread."),
+        AgriTip(26, "Chilli", "🌶️", "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?q=80&w=500", "ಮೆಣಸಿನಕಾಯಿಯಲ್ಲಿ ಬೂದಿ ರೋಗಕ್ಕೆ ಗಂಧಕದ ಪುಡಿ ಬಳಸಿ.", "Use sulfur powder for powdery mildew in chilli."),
+
+        // Success Stories (6)
+        AgriTip(27, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=500", "ರಾಯಚೂರಿನ ಮಲ್ಲಮ್ಮ ಅವರು ಸಕಾಲದಲ್ಲಿ ಕಳೆ ಕೀಳುವ ಮೂಲಕ ಲಾಭ ಗಳಿದ್ದಾರೆ. ನೀವು ಸಹ ಈ ವಿಧಾನದಿಂದ ಶ್ರಮ ಉಳಿಸಬಹುದು.", "Mallamma from Raichur doubled profits by timely weeding. You can also save effort using this method.", true),
+        AgriTip(28, "Success Story", "🏆", "https://images.unsplash.com/photo-1492496913980-501348b61469?q=80&w=500", "ಧಾರವಾಡದ ಮಂಜುನಾಥ್ ಅವರು ಸಮಗ್ರ ಕೃಷಿ ಪದ್ಧತಿಯಿಂದ ವಾರ್ಷಿಕ 5 ಲಕ್ಷ ಆದಾಯ ಗಳಿಸುತ್ತಿದ್ದಾರೆ.", "Manjunath from Dharwad earns 5 lakhs annually through integrated farming systems.", true),
+        AgriTip(29, "Success Story", "🏆", "https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?q=80&w=500", "ಚಿಕ್ಕಮಗಳೂರಿನ ಕಾವೇರಿ ಅವರು ಸಾವಯವ ಕಾಫಿ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುತ್ತಿದ್ದಾರೆ.", "Kaveri from Chikmagalur exports organic coffee to foreign countries.", true),
+        AgriTip(30, "Success Story", "🏆", "https://images.unsplash.com/photo-1595113316349-9fa4eb24f884?q=80&w=500", "ಗದಗದ ಬಸಪ್ಪ ಅವರು ಈರುಳ್ಳಿಗೆ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ ಶೇ.40 ರಷ್ಟು ನೀರು ಉಳಿಸಿ ಉತ್ತಮ ಲಾಭ ಗಳಿದ್ದಾರೆ.", "Basappa from Gadag saved 40% water and earned more using drip irrigation for onions.", true),
+        AgriTip(31, "Success Story", "🏆", "https://images.unsplash.com/photo-1589923188900-85dae523342b?q=80&w=500", "ಮಂಡ್ಯದ ಗಿರಿಜಾ ಅವರು ಸಾವಯವ ಪದ್ಧತಿಯಲ್ಲಿ ಕಬ್ಬು ಬೆಳೆದು ಸಕ್ಕರೆ ಕಾರ್ಖಾನೆಯಿಂದ ಪ್ರಶಸ್ತಿ ಪಡೆದಿದ್ದಾರೆ.", "Girija from Mandya won awards for growing organic sugarcane.", true),
+        AgriTip(32, "Success Story", "🏆", "https://images.unsplash.com/photo-1495908333425-29a1e0918c5f?q=80&w=500", "ಕೊಪ್ಪಳದ ಶಿವಾನಂದ್ ಅವರು ದಾಳಿಂಬೆ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುವಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿದ್ದಾರೆ.", "Shivanand from Koppal successfully exports pomegranates to foreign markets.", true)
     )
 
     var selectedCategory by remember { mutableStateOf("All") }
@@ -315,8 +330,8 @@ fun HomeScreenContent(lang: String, onSpeak: (String) -> Unit) {
 @Composable
 fun TipCard(tip: AgriTip, lang: String, onSpeak: (String) -> Unit) {
     val categoryMap = mapOf(
-        "Success Story" to "ಯಶೋಗಾಥೆ",
-        "Success Stories" to "ಯಶೋಗಾಥೆ",
+        "Success Story" to "ಯಶೋಗาಥೆ",
+        "Success Stories" to "ಯಶೋಗาಥೆ",
         "Paddy" to "ಭತ್ತ",
         "Sugarcane" to "ಕಬ್ಬು",
         "Tomato" to "ಟೊಮೆಟೊ",
@@ -770,30 +785,31 @@ fun SignupPage(userManager: UserManager, onNavigateToLogin: () -> Unit, onSignup
 fun WeatherWidget(onClick: () -> Unit, lang: String) {
     Row(modifier = Modifier.fillMaxWidth().padding(16.dp).background(Color(0xFFE8F5E9), shape = RoundedCornerShape(12.dp)).clickable { onClick() }.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Column {
-            Text(if (lang == "KN") "ಬೆಂಗಳೂರು, 6 ಮೇ" else "Bengaluru, 6 May", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
-            Text("31°C | ${if (lang == "KN") "ಬಿಸಿಲು" else "Sunny"}", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+            Text(if (lang == "KN") "ಬೆಂಗಳೂರು, 7 ಮೇ" else "Bengaluru, 7 May", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+            val status = if (lang == "KN") "ಮೋಡಕವಿದ" else "Cloudy"
+            Text("28°C | $status", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
         }
-        Text("☀️", fontSize = 40.sp)
+        Text("☁️", fontSize = 40.sp)
     }
 }
 
 @Composable
 fun WeatherDetailScreen(onBack: () -> Unit, lang: String) {
     val weatherData = listOf(
-        "Mon" to "31°C ☀️",
-        "Tue" to "30°C 🌤️",
-        "Wed" to "29°C 🌦️",
-        "Thu" to "32°C ☀️",
-        "Fri" to "33°C 🔥",
-        "Sat" to "31°C 🌤️",
-        "Sun" to "28°C 🌧️"
+        (if (lang == "KN") "ಸೋಮ" else "Mon") to "28°C ☁️",
+        (if (lang == "KN") "ಮಂಗಳ" else "Tue") to "29°C ⛅",
+        (if (lang == "KN") "ಬುಧ" else "Wed") to "27°C 🌧️",
+        (if (lang == "KN") "ಗುರು" else "Thu") to "30°C 🌤️",
+        (if (lang == "KN") "ಶುಕ್ರ" else "Fri") to "31°C ☀️",
+        (if (lang == "KN") "ಶನಿ" else "Sat") to "32°C ☀️",
+        (if (lang == "KN") "ಭಾನು" else "Sun") to "29°C 🌦️"
     )
 
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFFE0F7FA)).verticalScroll(rememberScrollState())) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("←", fontSize = 24.sp, modifier = Modifier.clickable { onBack() }, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(16.dp))
-            Text(if (lang == "KN") "7 ದಿನಗಳ ಹವಾಮಾನ ವರದಿ" else "7-Day Weather Forecast", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(if (lang == "KN") "7 ದಿನಗಳ ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ" else "7-Day Weather Update", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
         
         weatherData.forEach { (day, temp) ->
@@ -815,11 +831,10 @@ fun WeatherDetailScreen(onBack: () -> Unit, lang: String) {
         
         Card(modifier = Modifier.padding(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFB2EBF2))) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = if (lang == "KN") "ಮುಂದಿನ ವಾರ ಸಾಧಾರಣ ಮಳೆಯ ಮುನ್ಸೂಚನೆ ಇದೆ. ಬಿತ್ತನೆಗೆ ಸಿದ್ಧರಾಗಿ." else "Moderate rain is expected next week. Prepare for sowing.",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF006064)
-                )
+                val advice = if (lang == "KN") 
+                    "ಮುಂಬರುವ ದಿನಗಳಲ್ಲಿ ಮೋಡಕವಿದ ಹವಾಮಾನವಿರುತ್ತದೆ. ಕೀಟನಾಶಕ ಸಿಂಪಡಣೆಗೆ ಇದು ಸೂಕ್ತ ಸಮಯವಲ್ಲ." 
+                    else "Cloudy weather expected. Not ideal for pesticide spraying today."
+                Text(text = advice, fontWeight = FontWeight.Bold, color = Color(0xFF006064))
             }
         }
     }
