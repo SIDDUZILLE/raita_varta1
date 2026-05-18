@@ -241,7 +241,13 @@ fun HomeScreenContent(lang: String) {
         AgriTip(3, "Tomato", "🍅", R.drawable.paddy_field, "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಆಧಾರ ನೀಡಿ. ಇದು ಹಣ್ಣುಗಳು ಕೊಳೆಯುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Provide support to tomato plants. This prevents fruit rot."),
         AgriTip(4, "Onion", "🧅", R.drawable.paddy_field, "ಈರುಳ್ಳಿ ಕೊಯ್ಲಿಗೆ 15 ದಿನ ಮೊದಲೇ ನೀರು ನಿಲ್ಲಿಸಿ. ಇದು ಈರುಳ್ಳಿ ಬಾಳಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Stop watering 15 days before harvest. This improves storage life."),
         AgriTip(5, "Chilli", "🌶️", R.drawable.paddy_field, "ಎಲೆ ಮುದುರು ರೋಗ ಕಂಡರೆ ತಕ್ಷಣ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಕೀಟಗಳನ್ನು ತಡೆಯುತ್ತದೆ.", "Spray neem oil if you notice leaf curl disease in chilli plants. This naturally prevents pest spread."),
-        AgriTip(6, "Success Story", "🏆", R.drawable.paddy_field, "ರಾಯಚೂರಿನ ಮಲ್ಲಮ್ಮ ಅವರು ಸಕಾಲದಲ್ಲಿ ಕಳೆ ಕೀಳುವ ಮೂಲಕ ಲಾಭ ಗಳಿದ್ದಾರೆ. ನೀವು ಸಹ ಈ ವಿಧಾನದಿಂದ ಶ್ರಮ ಉಳಿಸಬಹುದು.", "Mallamma from Raichur doubled profits by timely weeding. You can also save effort using this method.", true)
+        AgriTip(6, "Success Story", "🏆", R.drawable.paddy_field, "ರಾಯಚೂರಿನ ಮಲ್ಲಮ್ಮ ಅವರು ಸಕಾಲದಲ್ಲಿ ಕಳೆ ಕೀಳುವ ಮೂಲಕ ಲಾಭ ಗಳಿದ್ದಾರೆ. ನೀವು ಸಹ ಈ ವಿಧಾನದಿಂದ ಶ್ರಮ ಉಳಿಸಬಹುದು.", "Mallamma from Raichur doubled profits by timely weeding. You can also save effort using this method.", true),
+        AgriTip(7, "Paddy", "🌾", R.drawable.paddy_field, "ಭತ್ತದ ಗದ್ದೆಯಲ್ಲಿ ಸಾಲು ನಾಟಿ ಮಾಡುವುದರಿಂದ ಕಳೆ ತೆಗೆಯಲು ಸುಲಭವಾಗುತ್ತದೆ ಮತ್ತು ಗಾಳಿಯ ಸಂಚಾರ ಹೆಚ್ಚುತ್ತದೆ.", "Row planting in paddy fields makes weeding easier and improves air circulation."),
+        AgriTip(8, "Tomato", "🍅", R.drawable.paddy_field, "ಟೊಮೆಟೊಗೆ ಕ್ಯಾಲ್ಸಿಯಂ ಕೊರತೆಯಾದರೆ ಹಣ್ಣಿನ ತಳಭಾಗ ಕೊಳೆಯಬಹುದು. ಸುಣ್ಣದ ತಿಳಿನೀರು ಬಳಸಿ.", "Calcium deficiency in tomatoes causes blossom end rot. Use lime water treatment."),
+        AgriTip(9, "Success Story", "🏆", R.drawable.paddy_field, "ಧಾರವಾಡದ ಮಂಜುನಾಥ್ ಅವರು ಸಮಗ್ರ ಕೃಷಿ ಪದ್ಧತಿಯಿಂದ ವಾರ್ಷಿಕ 5 ಲಕ್ಷ ಆದಾಯ ಗಳಿಸುತ್ತಿದ್ದಾರೆ.", "Manjunath from Dharwad earns 5 lakhs annually through integrated farming systems.", true),
+        AgriTip(10, "Daily Tip", "📢", R.drawable.paddy_field, "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money."),
+        AgriTip(11, "Success Story", "🏆", R.drawable.paddy_field, "ಚಿಕ್ಕಮಗಳೂರಿನ ಕಾವೇರಿ ಅವರು ಸಾವಯವ ಕಾಫಿ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುತ್ತಿದ್ದಾರೆ.", "Kaveri from Chikmagalur exports organic coffee to foreign countries.", true),
+        AgriTip(12, "Sugarcane", "🎋", R.drawable.paddy_field, "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility.")
     )
 
     var selectedCategory by remember { mutableStateOf("All") }
@@ -299,6 +305,11 @@ fun ExpertAskContent(lang: String) {
     val generativeModel = remember { GenerativeModel(modelName = "gemini-1.5-flash", apiKey = API_KEY) }
 
     fun analyzeWithAI(bitmap: Bitmap) {
+        if (API_KEY == "YOUR_FREE_GEMINI_API_KEY") {
+            errorState = "API Key Missing: Please add your key from AI Studio to MainActivity.kt"
+            return
+        }
+        
         isAnalyzing = true
         errorState = null
         coroutineScope.launch {
@@ -336,8 +347,7 @@ fun ExpertAskContent(lang: String) {
                     }
                 }
             } catch (e: Exception) {
-                // If API fails (no key/no net), fallback to a friendly message or simulation
-                errorState = if (lang == "KN") "ಸಂಪರ್ಕ ದೋಷ! ದಯವಿಟ್ಟು ಇಂಟರ್ನೆಟ್ ಪರಿಶೀಲಿಸಿ." else "Connection Error: Please check your internet or API key."
+                errorState = if (lang == "KN") "ಸಂಪರ್ಕ ದೋಷ! ಇಂಟರ್ನೆಟ್ ಅಥವಾ API ಕೀ ಪರಿಶೀಲಿಸಿ." else "Connection Error: Check internet or verify your API key in AI Studio."
             } finally {
                 isAnalyzing = false
             }
@@ -701,14 +711,47 @@ fun WeatherWidget(onClick: () -> Unit, lang: String) {
 
 @Composable
 fun WeatherDetailScreen(onBack: () -> Unit, lang: String) {
+    val weatherData = listOf(
+        "Mon" to "31°C ☀️",
+        "Tue" to "30°C 🌤️",
+        "Wed" to "29°C 🌦️",
+        "Thu" to "32°C ☀️",
+        "Fri" to "33°C 🔥",
+        "Sat" to "31°C 🌤️",
+        "Sun" to "28°C 🌧️"
+    )
+
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFFE0F7FA)).verticalScroll(rememberScrollState())) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("←", fontSize = 24.sp, modifier = Modifier.clickable { onBack() })
-            Text(if (lang == "KN") "ಬೆಂಗಳೂರು" else "Bengaluru", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("←", fontSize = 24.sp, modifier = Modifier.clickable { onBack() }, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(if (lang == "KN") "7 ದಿನಗಳ ಹವಾಮಾನ ವರದಿ" else "7-Day Weather Forecast", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
-        Card(modifier = Modifier.padding(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        
+        weatherData.forEach { (day, temp) ->
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = day, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(text = temp, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+        }
+        
+        Card(modifier = Modifier.padding(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFB2EBF2))) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(if (lang == "KN") "ಇಂದು ಬೆಳಿಗ್ಗೆ ಒಣ ಹವಾಮಾನವಿರುತ್ತದೆ." else "Today morning is dry with light clouds.")
+                Text(
+                    text = if (lang == "KN") "ಮುಂದಿನ ವಾರ ಸಾಧಾರಣ ಮಳೆಯ ಮುನ್ಸೂಚನೆ ಇದೆ. ಬಿತ್ತನೆಗೆ ಸಿದ್ಧರಾಗಿ." else "Moderate rain is expected next week. Prepare for sowing.",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF006064)
+                )
             }
         }
     }
