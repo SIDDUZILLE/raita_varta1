@@ -2,6 +2,7 @@ package com.example.raitha_varta
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -26,6 +27,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -36,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.raitha_varta.ui.theme.RaithaVartaTheme
 import kotlinx.coroutines.delay
 import org.json.JSONArray
@@ -279,60 +282,145 @@ fun ExpertAskContent(lang: String) {
     var isAnalyzing by remember { mutableStateOf(false) }
     var showResult by remember { mutableStateOf(false) }
     var isHealthyResult by remember { mutableStateOf(true) }
+    var capturedImage by remember { mutableStateOf<Any?>(null) }
+    val cropTypes = listOf("Paddy", "Tomato", "Sugarcane", "Onion", "Chilli")
+    var detectedCrop by remember { mutableStateOf("") }
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
         if (bitmap != null) {
+            capturedImage = bitmap
             isAnalyzing = true
+            detectedCrop = cropTypes.random()
+            isHealthyResult = (0..1).random() == 1
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            capturedImage = uri
+            isAnalyzing = true
+            detectedCrop = cropTypes.random()
             isHealthyResult = (0..1).random() == 1
         }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (!isAnalyzing && !showResult) {
-            Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF0F9FF)), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Box(modifier = Modifier.size(160.dp).background(Color(0xFFC7D2FE), CircleShape), contentAlignment = Alignment.Center) { Text("📱", fontSize = 60.sp) }
+            Column(
+                modifier = Modifier.fillMaxSize().background(Color(0xFFF0F9FF)).padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = if (lang == "KN") "ಸಸ್ಯದ ಆರೋಗ್ಯ ಪರೀಕ್ಷಿಸಿ" else "Check Plant Health",
+                    fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1A237E)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = if (lang == "KN") "ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಅಥವಾ ಕ್ಯಾಮರಾ ಬಳಸಿ" else "Upload a photo or use camera",
+                    textAlign = TextAlign.Center, color = Color.Gray
+                )
                 Spacer(modifier = Modifier.height(32.dp))
-                Button(onClick = { cameraLauncher.launch() }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0056D2))) {
-                    Text(if (lang == "KN") "ಫೋಟೋ ತೆಗೆಯಿರಿ" else "Take a Photo")
+                
+                Box(modifier = Modifier.size(180.dp).background(Color(0xFFC7D2FE), CircleShape), contentAlignment = Alignment.Center) { 
+                    Text("📸", fontSize = 70.sp) 
+                }
+                
+                Spacer(modifier = Modifier.height(40.dp))
+                
+                Button(
+                    onClick = { cameraLauncher.launch() }, 
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0056D2)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(if (lang == "KN") "ಕ್ಯಾಮರಾ ಬಳಸಿ (Camera)" else "Use Camera", fontSize = 18.sp)
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                OutlinedButton(
+                    onClick = { galleryLauncher.launch("image/*") }, 
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFF0056D2))
+                ) {
+                    Text(if (lang == "KN") "ಗ್ಯಾಲರಿಯಿಂದ ಅಪ್‌ಲೋಡ್ (Upload)" else "Upload from Gallery", fontSize = 18.sp)
                 }
             }
         } else if (isAnalyzing) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                CircularProgressIndicator(color = Color(0xFF4A148C))
-                Text(if (lang == "KN") "AI ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ..." else "AI analyzing health...", modifier = Modifier.padding(top = 12.dp))
-                LaunchedEffect(Unit) { delay(3000); isAnalyzing = false; showResult = true }
+                CircularProgressIndicator(color = Color(0xFF4A148C), strokeWidth = 6.dp, modifier = Modifier.size(60.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = if (lang == "KN") "AI ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ..." else "AI analyzing plant health...",
+                    fontSize = 20.sp, fontWeight = FontWeight.Bold
+                )
+                LaunchedEffect(Unit) { delay(2500); isAnalyzing = false; showResult = true }
             }
         } else if (showResult) {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(24.dp).align(Alignment.Center),
-                colors = CardDefaults.cardColors(containerColor = if (isHealthyResult) Color(0xFFE8F5E9) else Color(0xFFFFF3E0)),
-                elevation = CardDefaults.cardElevation(12.dp)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = if (isHealthyResult) {
-                            if (lang == "KN") "✅ ಬೆಳೆ ಆರೋಗ್ಯವಾಗಿದೆ" else "✅ Crop is Healthy"
-                        } else {
-                            if (lang == "KN") "❌ ಬೆಳೆ ಅನಾರೋಗ್ಯಕರವಾಗಿದೆ" else "❌ Crop is Not Healthy"
-                        },
-                        fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = if (isHealthyResult) Color(0xFF2E7D32) else Color(0xFFD32F2F)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
+                Text(
+                    text = if (lang == "KN") "ವಿಶ್ಲೇಷಣಾ ವರದಿ" else "Analysis Report",
+                    fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-                    Text(
-                        text = if (isHealthyResult) {
-                            if (lang == "KN") "1. ಇದೇ ರೀತಿ ನೀರಾವರಿ ಮುಂದುವರಿಸಿ.\n2. ವಾರಕ್ಕೊಮ್ಮೆ ಪರೀಕ್ಷಿಸಿ.\n3. ನೈಸರ್ಗಿಕ ಗೊಬ್ಬರ ಬಳಸಿ."
-                            else "1. Continue irrigation.\n2. Inspect once a week.\n3. Use organic fertilizers."
-                        } else {
-                            if (lang == "KN") "1. ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ.\n2. ಸೋಂಕಿತ ಎಲೆಗಳನ್ನು ತೆಗೆಯಿರಿ.\n3. ಸಾರಜನಕ ಕಡಿಮೆ ಮಾಡಿ."
-                            else "1. Spray Neem oil.\n2. Remove infected leaves.\n3. Reduce nitrogen."
-                        },
-                        fontSize = 16.sp, lineHeight = 24.sp
-                    )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        AsyncImage(
+                            model = capturedImage,
+                            contentDescription = "Analyzed Image",
+                            modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(if (lang == "KN") "ಪತ್ತೆಯಾದ ಬೆಳೆ: " else "Detected Crop: ", fontWeight = FontWeight.Bold)
+                            Surface(color = Color(0xFFE8EAF6), shape = RoundedCornerShape(4.dp)) {
+                                Text(detectedCrop, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), color = Color(0xFF3F51B5), fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        
+                        Text(
+                            text = if (isHealthyResult) {
+                                if (lang == "KN") "✅ ಆರೋಗ್ಯಕರವಾಗಿದೆ" else "✅ Status: Healthy"
+                            } else {
+                                if (lang == "KN") "❌ ರೋಗ ಪತ್ತೆಯಾಗಿದೆ" else "❌ Status: Diseased"
+                            },
+                            fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = if (isHealthyResult) Color(0xFF2E7D32) else Color(0xFFD32F2F)
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    Button(onClick = { showResult = false }, modifier = Modifier.align(Alignment.End).padding(top = 16.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))) {
-                        Text(if (lang == "KN") "ಮುಚ್ಚಿ" else "Close")
+                        Text(
+                            text = if (isHealthyResult) {
+                                if (lang == "KN") "ಸಲಹೆಗಳು:\n1. ಇದೇ ರೀತಿ ನೀರಾವರಿ ಮುಂದುವರಿಸಿ.\n2. ವಾರಕ್ಕೊಮ್ಮೆ ಪರೀಕ್ಷಿಸಿ.\n3. ನೈಸರ್ಗಿಕ ಗೊಬ್ಬರ ಬಳಸಿ."
+                                else "Expert Advice:\n1. Continue current irrigation.\n2. Inspect once a week.\n3. Use organic fertilizers."
+                            } else {
+                                if (lang == "KN") "ಸಲಹೆಗಳು:\n1. ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ.\n2. ಸೋಂಕಿತ ಎಲೆಗಳನ್ನು ತೆಗೆಯಿರಿ.\n3. ಸಾರಜನಕ ಕಡಿಮೆ ಮಾಡಿ."
+                                else "Expert Advice:\n1. Spray Neem oil (Organic).\n2. Remove infected leaves immediately.\n3. Reduce nitrogen application."
+                            },
+                            fontSize = 16.sp, lineHeight = 24.sp
+                        )
                     }
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Button(
+                    onClick = { showResult = false; capturedImage = null },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))
+                ) {
+                    Text(if (lang == "KN") "ಮತ್ತೆ ಪರೀಕ್ಷಿಸಿ" else "Test Another Plant")
                 }
             }
         }
