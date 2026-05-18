@@ -247,7 +247,21 @@ fun HomeScreenContent(lang: String) {
         AgriTip(9, "Success Story", "🏆", R.drawable.paddy_field, "ಧಾರವಾಡದ ಮಂಜುನಾಥ್ ಅವರು ಸಮಗ್ರ ಕೃಷಿ ಪದ್ಧತಿಯಿಂದ ವಾರ್ಷಿಕ 5 ಲಕ್ಷ ಆದಾಯ ಗಳಿಸುತ್ತಿದ್ದಾರೆ.", "Manjunath from Dharwad earns 5 lakhs annually through integrated farming systems.", true),
         AgriTip(10, "Daily Tip", "📢", R.drawable.paddy_field, "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money."),
         AgriTip(11, "Success Story", "🏆", R.drawable.paddy_field, "ಚಿಕ್ಕಮಗಳೂರಿನ ಕಾವೇರಿ ಅವರು ಸಾವಯವ ಕಾಫಿ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುತ್ತಿದ್ದಾರೆ.", "Kaveri from Chikmagalur exports organic coffee to foreign countries.", true),
-        AgriTip(12, "Sugarcane", "🎋", R.drawable.paddy_field, "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility.")
+        AgriTip(12, "Sugarcane", "🎋", R.drawable.paddy_field, "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility."),
+        // New Additions
+        AgriTip(13, "Paddy", "🌾", R.drawable.paddy_field, "ಭತ್ತಕ್ಕೆ ಎಸ್.ಆರ್.ಐ (SRI) ಪದ್ಧತಿ ಅಳವಡಿಸುವುದರಿಂದ ಕಡಿಮೆ ನೀರಿನಲ್ಲಿ ಹೆಚ್ಚು ಇಳುವರಿ ಪಡೆಯಬಹುದು.", "Adopting SRI method in paddy yields more with less water."),
+        AgriTip(14, "Paddy", "🌾", R.drawable.paddy_field, "ಸತುವು (Zinc) ಕೊರತೆ ಕಾಣಿಸಿಕೊಂಡರೆ ಪ್ರತಿ ಎಕರೆಗೆ 10 ಕೆಜಿ ಜಿಂಕ್ ಸಲ್ಫೇಟ್ ಸಿಂಪಡಿಸಿ.", "Spray 10kg Zinc Sulphate per acre if deficiency symptoms appear."),
+        AgriTip(15, "Paddy", "🌾", R.drawable.paddy_field, "ಕೊನೊ ವೀಡರ್ ಬಳಸಿ ಕಳೆ ತೆಗೆಯುವುದರಿಂದ ಮಣ್ಣಿಗೆ ಗಾಳಿ ಸಂಚಾರ ಹೆಚ್ಚಿ ಬೇರುಗಳು ಚೆನ್ನಾಗಿ ಬೆಳೆಯುತ್ತವೆ.", "Using Cono weeder for weeding increases soil aeration and root growth."),
+        AgriTip(16, "Sugarcane", "🎋", R.drawable.paddy_field, "ಕಬ್ಬಿನ ಸೋಗೆಯನ್ನು ಸುಡಬೇಡಿ, ಅದನ್ನು ಹೊದಿಕೆಯಾಗಿ ಬಳಸಿ. ಇದು ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Don't burn sugarcane trash; use it for mulching to retain moisture."),
+        AgriTip(17, "Sugarcane", "🎋", R.drawable.paddy_field, "ಕಬ್ಬಿನ ನಾಟಿಗೆ ಮೊಗ್ಗು ಚಿಪ್ (Bud chip) ವಿಧಾನ ಬಳಸುವುದರಿಂದ ಬೀಜದ ಖರ್ಚು ಉಳಿಸಬಹುದು.", "Using bud chip method for sugarcane planting saves seed cost."),
+        AgriTip(18, "Onion", "🧅", R.drawable.paddy_field, "ಈರುಳ್ಳಿ ಬೀಜಗಳನ್ನು ಬಿತ್ತುವ ಮೊದಲು ಕಾರ್ಬೆಂಡಾಜಿಮ್‌ನಿಂದ ಉಪಚರಿಸಿ. ಇದು ಕೊಳೆ ರೋಗ ತಡೆಯುತ್ತದೆ.", "Treat onion seeds with Carbendazim before sowing to prevent rot."),
+        AgriTip(19, "Onion", "🧅", R.drawable.paddy_field, "ಗಡ್ಡೆ ಬಲಿಯುವ ಹಂತದಲ್ಲಿ ಅತಿಯಾದ ಸಾರಜನಕ ಗೊಬ್ಬರ ನೀಡಬೇಡಿ. ಇದು ಸಂಗ್ರಹಣಾ ಸಾಮರ್ಥ್ಯ ಕುಗ್ಗಿಸುತ್ತದೆ.", "Avoid excess Nitrogen at bulb maturity as it reduces storage life."),
+        AgriTip(20, "Onion", "🧅", R.drawable.paddy_field, "ಈರುಳ್ಳಿಯನ್ನು ನೆರಳಿನಲ್ಲಿ ಚೆನ್ನಾಗಿ ಒಣಗಿಸಿದ ನಂತರವೇ ಶೇಖರಿಸಿ. ಇದು ಬಾಳಿಕೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Store onions only after proper curing in shade to increase shelf life."),
+        AgriTip(21, "Success Story", "🏆", R.drawable.paddy_field, "ಗದಗದ ಬಸಪ್ಪ ಅವರು ಈರುಳ್ಳಿಗೆ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ ಶೇ.40 ರಷ್ಟು ನೀರು ಉಳಿಸಿ ಉತ್ತಮ ಲಾಭ ಗಳಿಸಿದ್ದಾರೆ.", "Basappa from Gadag saved 40% water and earned more using drip irrigation for onions.", true),
+        AgriTip(22, "Success Story", "🏆", R.drawable.paddy_field, "ಮಂಡ್ಯದ ಗಿರಿಜಾ ಅವರು ಸಾವಯವ ಪದ್ಧತಿಯಲ್ಲಿ ಕಬ್ಬು ಬೆಳೆದು ಸಕ್ಕರೆ ಕಾರ್ಖಾನೆಯಿಂದ ಪ್ರಶಸ್ತಿ ಪಡೆದಿದ್ದಾರೆ.", "Girija from Mandya won awards for growing organic sugarcane.", true),
+        AgriTip(23, "Success Story", "🏆", R.drawable.paddy_field, "ಕೊಪ್ಪಳದ ಶಿವಾನಂದ್ ಅವರು ದಾಳಿಂಬೆ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುವಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿದ್ದಾರೆ.", "Shivanand from Koppal successfully exports pomegranates to foreign markets.", true),
+        AgriTip(24, "Success Story", "🏆", R.drawable.paddy_field, "ದಾವಣಗೆರೆಯ ಲಕ್ಷ್ಮಿ ಅವರು ಎರೆಹುಳು ಗೊಬ್ಬರ ತಯಾರಿಕೆಯಿಂದ ಸ್ವಾವಲಂಬಿ ಜೀವನ ನಡೆಸುತ್ತಿದ್ದಾರೆ.", "Lakshmi from Davangere is self-reliant through vermicompost production.", true),
+        AgriTip(25, "Success Story", "🏆", R.drawable.paddy_field, "ಬೆಳಗಾವಿಯ ಸುರೇಶ್ ಅವರು ಮಿಶ್ರ ಬೆಳೆ ಪದ್ಧತಿಯಿಂದ ವರ್ಷವಿಡೀ ಆದಾಯ ಪಡೆಯುತ್ತಿದ್ದಾರೆ.", "Suresh from Belagavi gets year-round income through mixed cropping.", true)
     )
 
     var selectedCategory by remember { mutableStateOf("All") }
