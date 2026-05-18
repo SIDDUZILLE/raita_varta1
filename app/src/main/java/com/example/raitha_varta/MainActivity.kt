@@ -2,6 +2,7 @@ package com.example.raitha_varta
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -40,7 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.raitha_varta.ui.theme.RaithaVartaTheme
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -237,7 +241,7 @@ fun HomeScreenContent(lang: String) {
         AgriTip(3, "Tomato", "🍅", R.drawable.paddy_field, "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಆಧಾರ ನೀಡಿ. ಇದು ಹಣ್ಣುಗಳು ಕೊಳೆಯುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Provide support to tomato plants. This prevents fruit rot."),
         AgriTip(4, "Onion", "🧅", R.drawable.paddy_field, "ಈರುಳ್ಳಿ ಕೊಯ್ಲಿಗೆ 15 ದಿನ ಮೊದಲೇ ನೀರು ನಿಲ್ಲಿಸಿ. ಇದು ಈರುಳ್ಳಿ ಬಾಳಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Stop watering 15 days before harvest. This improves storage life."),
         AgriTip(5, "Chilli", "🌶️", R.drawable.paddy_field, "ಎಲೆ ಮುದುರು ರೋಗ ಕಂಡರೆ ತಕ್ಷಣ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಕೀಟಗಳನ್ನು ತಡೆಯುತ್ತದೆ.", "Spray neem oil if you notice leaf curl disease in chilli plants. This naturally prevents pest spread."),
-        AgriTip(6, "Success Story", "🏆", R.drawable.paddy_field, "ರಾಯಚೂರಿನ ಮಲ್ಲಮ್ಮ ಅವರು ಸಕಾಲದಲ್ಲಿ ಕಳೆ ಕೀಳುವ ಮೂಲಕ ಲಾಭ ಗಳಿಸಿದ್ದಾರೆ. ನೀವು ಸಹ ಈ ವಿಧಾನದಿಂದ ಶ್ರಮ ಉಳಿಸಬಹುದು.", "Mallamma from Raichur doubled profits by timely weeding. You can also save effort using this method.", true)
+        AgriTip(6, "Success Story", "🏆", R.drawable.paddy_field, "ರಾಯಚೂರಿನ ಮಲ್ಲಮ್ಮ ಅವರು ಸಕಾಲದಲ್ಲಿ ಕಳೆ ಕೀಳುವ ಮೂಲಕ ಲಾಭ ಗಳಿದ್ದಾರೆ. ನೀವು ಸಹ ಈ ವಿಧಾನದಿಂದ ಶ್ರಮ ಉಳಿಸಬಹುದು.", "Mallamma from Raichur doubled profits by timely weeding. You can also save effort using this method.", true)
     )
 
     var selectedCategory by remember { mutableStateOf("All") }
@@ -279,28 +283,80 @@ fun TipCard(tip: AgriTip, lang: String) {
 
 @Composable
 fun ExpertAskContent(lang: String) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    
     var isAnalyzing by remember { mutableStateOf(false) }
     var showResult by remember { mutableStateOf(false) }
+    var resultMessage by remember { mutableStateOf("") }
     var isHealthyResult by remember { mutableStateOf(true) }
     var capturedImage by remember { mutableStateOf<Any?>(null) }
-    val cropTypes = listOf("Paddy", "Tomato", "Sugarcane", "Onion", "Chilli")
     var detectedCrop by remember { mutableStateOf("") }
+    var errorState by remember { mutableStateOf<String?>(null) }
+
+    // TODO: Replace with your actual free key from https://aistudio.google.com/
+    val API_KEY = "YOUR_FREE_GEMINI_API_KEY" 
+    val generativeModel = remember { GenerativeModel(modelName = "gemini-1.5-flash", apiKey = API_KEY) }
+
+    fun analyzeWithAI(bitmap: Bitmap) {
+        isAnalyzing = true
+        errorState = null
+        coroutineScope.launch {
+            try {
+                // This prompt strictly asks the AI to identify if it's a crop or not.
+                val prompt = """
+                    Analyze this image. 
+                    If it is NOT a plant, crop, leaf or related to agriculture, reply exactly with 'INVALID'. 
+                    If it IS a plant/crop, identify it and describe its health.
+                    Reply ONLY in this format: CROP_NAME | HEALTH_STATUS | ADVICE. 
+                    Keep the advice very short and actionable.
+                """.trimIndent()
+                
+                val response = generativeModel.generateContent(
+                    content {
+                        image(bitmap)
+                        text(prompt)
+                    }
+                )
+                
+                val text = response.text ?: ""
+                if (text.contains("INVALID", ignoreCase = true)) {
+                    errorState = if (lang == "KN") "ಇದು ಬೆಳೆ ಎಂದು ಕಂಡುಬರುತ್ತಿಲ್ಲ: ದಯವಿಟ್ಟು ಬೆಳೆಯ ಫೋಟೋ ಕ್ಲಿಕ್ ಮಾಡಿ." else "Object not detected: Please click a photo of a crop."
+                } else {
+                    val parts = text.split("|")
+                    if (parts.size >= 2) {
+                        detectedCrop = parts.getOrNull(0)?.trim() ?: "Unknown"
+                        val status = parts.getOrNull(1)?.trim() ?: ""
+                        isHealthyResult = !status.contains("unhealthy", ignoreCase = true) && !status.contains("diseased", ignoreCase = true)
+                        resultMessage = parts.getOrNull(2)?.trim() ?: "Follow standard care."
+                        showResult = true
+                    } else {
+                        // Fallback if AI response format is weird but not 'INVALID'
+                        errorState = if (lang == "KN") "ವಿಶ್ಲೇಷಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ." else "Could not analyze clearly. Please try again with a better photo."
+                    }
+                }
+            } catch (e: Exception) {
+                // If API fails (no key/no net), fallback to a friendly message or simulation
+                errorState = if (lang == "KN") "ಸಂಪರ್ಕ ದೋಷ! ದಯವಿಟ್ಟು ಇಂಟರ್ನೆಟ್ ಪರಿಶೀಲಿಸಿ." else "Connection Error: Please check your internet or API key."
+            } finally {
+                isAnalyzing = false
+            }
+        }
+    }
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
         if (bitmap != null) {
             capturedImage = bitmap
-            isAnalyzing = true
-            detectedCrop = cropTypes.random()
-            isHealthyResult = (0..1).random() == 1
+            analyzeWithAI(bitmap)
         }
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             capturedImage = uri
-            isAnalyzing = true
-            detectedCrop = cropTypes.random()
-            isHealthyResult = (0..1).random() == 1
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            if (bitmap != null) analyzeWithAI(bitmap)
         }
     }
 
@@ -312,18 +368,18 @@ fun ExpertAskContent(lang: String) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = if (lang == "KN") "ಸಸ್ಯದ ಆರೋಗ್ಯ ಪರೀಕ್ಷಿಸಿ" else "Check Plant Health",
+                    text = if (lang == "KN") "ಸಸ್ಯದ ಆರೋಗ್ಯ ಪರೀಕ್ಷಿಸಿ (GenAI)" else "Check Plant Health (GenAI)",
                     fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1A237E)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = if (lang == "KN") "ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ ಅಥವಾ ಕ್ಯಾಮರಾ ಬಳಸಿ" else "Upload a photo or use camera",
-                    textAlign = TextAlign.Center, color = Color.Gray
-                )
+                
+                if (errorState != null) {
+                    Text(errorState!!, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
+                }
+
                 Spacer(modifier = Modifier.height(32.dp))
                 
                 Box(modifier = Modifier.size(180.dp).background(Color(0xFFC7D2FE), CircleShape), contentAlignment = Alignment.Center) { 
-                    Text("📸", fontSize = 70.sp) 
+                    Text("🤖", fontSize = 70.sp) 
                 }
                 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -353,15 +409,14 @@ fun ExpertAskContent(lang: String) {
                 CircularProgressIndicator(color = Color(0xFF4A148C), strokeWidth = 6.dp, modifier = Modifier.size(60.dp))
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = if (lang == "KN") "AI ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ..." else "AI analyzing plant health...",
+                    text = if (lang == "KN") "GenAI ವಿಶ್ಲೇಷಣೆ ನಡೆಯುತ್ತಿದೆ..." else "GenAI is analyzing your crop...",
                     fontSize = 20.sp, fontWeight = FontWeight.Bold
                 )
-                LaunchedEffect(Unit) { delay(2500); isAnalyzing = false; showResult = true }
             }
         } else if (showResult) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
                 Text(
-                    text = if (lang == "KN") "ವಿಶ್ಲೇಷಣಾ ವರದಿ" else "Analysis Report",
+                    text = if (lang == "KN") "AI ವಿಶ್ಲೇಷಣಾ ವರದಿ" else "GenAI Analysis Report",
                     fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -401,13 +456,7 @@ fun ExpertAskContent(lang: String) {
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = if (isHealthyResult) {
-                                if (lang == "KN") "ಸಲಹೆಗಳು:\n1. ಇದೇ ರೀತಿ ನೀರಾವರಿ ಮುಂದುವರಿಸಿ.\n2. ವಾರಕ್ಕೊಮ್ಮೆ ಪರೀಕ್ಷಿಸಿ.\n3. ನೈಸರ್ಗಿಕ ಗೊಬ್ಬರ ಬಳಸಿ."
-                                else "Expert Advice:\n1. Continue current irrigation.\n2. Inspect once a week.\n3. Use organic fertilizers."
-                            } else {
-                                if (lang == "KN") "ಸಲಹೆಗಳು:\n1. ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ.\n2. ಸೋಂಕಿತ ಎಲೆಗಳನ್ನು ತೆಗೆಯಿರಿ.\n3. ಸಾರಜನಕ ಕಡಿಮೆ ಮಾಡಿ."
-                                else "Expert Advice:\n1. Spray Neem oil (Organic).\n2. Remove infected leaves immediately.\n3. Reduce nitrogen application."
-                            },
+                            text = if (lang == "KN") "ಸಲಹೆ: $resultMessage" else "Expert Advice: $resultMessage",
                             fontSize = 16.sp, lineHeight = 24.sp
                         )
                     }
@@ -416,7 +465,7 @@ fun ExpertAskContent(lang: String) {
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 Button(
-                    onClick = { showResult = false; capturedImage = null },
+                    onClick = { showResult = false; capturedImage = null; errorState = null },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))
                 ) {
@@ -467,6 +516,8 @@ fun LoginPage(userManager: UserManager, onNavigateToSignup: () -> Unit, onLoginS
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text("Welcome 🙏", fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF4A148C))
+        Spacer(modifier = Modifier.height(8.dp))
         Text("Raitha-Varta", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4A148C))
         Spacer(modifier = Modifier.height(40.dp))
 

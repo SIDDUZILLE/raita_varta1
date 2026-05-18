@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation("androidx.compose.foundation:foundation:1.6.0")
     implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
