@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -48,6 +49,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.util.Locale
 
 // --- 1. DATA MODELS ---
 data class User(
@@ -123,6 +125,28 @@ class MainActivity : ComponentActivity() {
 fun MainContainer() {
     val context = LocalContext.current
     val userManager = remember { UserManager(context) }
+    
+    // Voice Note (TTS) Setup
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    DisposableEffect(Unit) {
+        val speech = TextToSpeech(context) { status ->
+            if (status != TextToSpeech.ERROR) {
+                // Initialized
+            }
+        }
+        tts = speech
+        onDispose {
+            speech.stop()
+            speech.shutdown()
+        }
+    }
+
+    fun speak(text: String, lang: String) {
+        tts?.apply {
+            language = if (lang == "KN") Locale("kn", "IN") else Locale.US
+            speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }
+    }
     
     var authState by remember { mutableStateOf("LOGIN") }
     var currentUser by remember { mutableStateOf<User?>(null) }
@@ -221,7 +245,7 @@ fun MainContainer() {
                         when (selectedScreen) {
                             0 -> {
                                 WeatherWidget(onClick = { showWeatherDetail = true }, lang = language)
-                                HomeScreenContent(lang = language)
+                                HomeScreenContent(lang = language, onSpeak = { text -> speak(text, language) })
                             }
                             1 -> ExpertAskContent(lang = language)
                             2 -> ProfileScreen(lang = language, user = currentUser)
@@ -234,10 +258,10 @@ fun MainContainer() {
 }
 
 @Composable
-fun HomeScreenContent(lang: String) {
+fun HomeScreenContent(lang: String, onSpeak: (String) -> Unit) {
     val allTips = listOf(
         AgriTip(1, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad", "ಬೆಳಿಗ್ಗೆ 10 ಗಂಟೆಯ ಮೊದಲು ಗದ್ದೆಗೆ ನೀರುಣಿಸುವುದು ಉತ್ತಮ. ಇದು ಮಣ್ಣಿನಲ್ಲಿ ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Watering before 10 AM is ideal. This helps the soil retain moisture."),
-        AgriTip(2, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627", "ಕಬ್ಬಿನ ನಾಟಿ ಮಾಡಿದ 30 ದಿನಗಳ ನಂತರ ಮೊದಲ ಗೊಬ್ಬರ ನೀಡಿ. ಇದು ಬೆಳವಣಿಗೆ ವೇಗಗೊಳಿಸುತ್ತದೆ.", "Apply fertilizer 30 days after planting sugarcane. This accelerates growth."),
+        AgriTip(2, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1590483727827-024357228-91a4daadcfea", "ಕಬ್ಬಿನ ನಾಟಿ ಮಾಡಿದ 30 ದಿನಗಳ ನಂತರ ಮೊದಲ ಗೊಬ್ಬರ ನೀಡಿ. ಇದು ಬೆಳವಣಿಗೆ ವೇಗಗೊಳಿಸುತ್ತದೆ.", "Apply fertilizer 30 days after planting sugarcane. This accelerates growth."),
         AgriTip(3, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಆಧಾರ ನೀಡಿ. ಇದು ಹಣ್ಣುಗಳು ಕೊಳೆಯುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Provide support to tomato plants. This prevents fruit rot."),
         AgriTip(4, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510", "ಈರುಳ್ಳಿ ಕೊಯ್ಲಿಗೆ 15 ದಿನ ಮೊದಲೇ ನೀರು ನಿಲ್ಲಿಸಿ. ಇದು ಈರುಳ್ಳಿ ಬಾಳಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Stop watering 15 days before harvest. This improves storage life."),
         AgriTip(5, "Chilli", "🌶️", "https://images.unsplash.com/photo-1584483766114-2cdf6a27d188", "ಎಲೆ ಮುದುರು ರೋಗ ಕಂಡರೆ ತಕ್ಷಣ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಕೀಟಗಳನ್ನು ತಡೆಯುತ್ತದೆ.", "Spray neem oil if you notice leaf curl disease in chilli plants. This naturally prevents pest spread."),
@@ -247,20 +271,25 @@ fun HomeScreenContent(lang: String) {
         AgriTip(9, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಧಾರವಾಡದ ಮಂಜುನಾಥ್ ಅವರು ಸಮಗ್ರ ಕೃಷಿ ಪದ್ಧತಿಯಿಂದ ವಾರ್ಷಿಕ 5 ಲಕ್ಷ ಆದಾಯ ಗಳಿಸುತ್ತಿದ್ದಾರೆ.", "Manjunath from Dharwad earns 5 lakhs annually through integrated farming systems.", true),
         AgriTip(10, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad", "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money."),
         AgriTip(11, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಚಿಕ್ಕಮಗಳೂರಿನ ಕಾವೇರಿ ಅವರು ಸಾವಯವ ಕಾಫಿ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುತ್ತಿದ್ದಾರೆ.", "Kaveri from Chikmagalur exports organic coffee to foreign countries.", true),
-        AgriTip(12, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627", "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility."),
+        AgriTip(12, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1590483727827-024357228-91a4daadcfea", "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility."),
         AgriTip(13, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d", "ಭತ್ತಕ್ಕೆ ಎಸ್.ಆರ್.ಐ (SRI) ಪದ್ಧತಿ ಅಳವಡಿಸುವುದರಿಂದ ಕಡಿಮೆ ನೀರಿನಲ್ಲಿ ಹೆಚ್ಚು ಇಳುವರಿ ಪಡೆಯಬಹುದು.", "Adopting SRI method in paddy yields more with less water."),
         AgriTip(14, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d", "ಸತುವು (Zinc) ಕೊರತೆ ಕಾಣಿಸಿಕೊಂಡರೆ ಪ್ರತಿ ಎಕರೆಗೆ 10 ಕೆಜಿ ಜಿಂಕ್ ಸಲ್ಫೇಟ್ ಸಿಂಪಡಿಸಿ.", "Spray 10kg Zinc Sulphate per acre if deficiency symptoms appear."),
         AgriTip(15, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d", "ಕೊನೊ ವೀಡರ್ ಬಳಸಿ ಕಳೆ ತೆಗೆಯುವುದರಿಂದ ಮಣ್ಣಿಗೆ ಗಾಳಿ ಸಂಚಾರ ಹೆಚ್ಚಿ ಬೇರುಗಳು ಚೆನ್ನಾಗಿ ಬೆಳೆಯುತ್ತವೆ.", "Using Cono weeder for weeding increases soil aeration and root growth."),
-        AgriTip(16, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627", "ಕಬ್ಬಿನ ಸೋಗೆಯನ್ನು ಸುಡಬೇಡಿ, ಅದನ್ನು ಹೊದಿಕೆಯಾಗಿ ಬಳಸಿ. ಇದು ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Don't burn sugarcane trash; use it for mulching to retain moisture."),
-        AgriTip(17, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627", "ಕಬ್ಬಿನ ನಾಟಿಗೆ ಮೊಗ್ಗು ಚಿಪ್ (Bud chip) ವಿಧಾನ ಬಳಸುವುದರಿಂದ ಬೀಜದ ಖರ್ಚು ಉಳಿಸಬಹುದು.", "Using bud chip method for sugarcane planting saves seed cost."),
+        AgriTip(16, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1590483727827-024357228-91a4daadcfea", "ಕಬ್ಬಿನ ಸೋಗೆಯನ್ನು ಸುಡಬೇಡಿ, ಅದನ್ನು ಹೊದಿಕೆಯಾಗಿ ಬಳಸಿ. ಇದು ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Don't burn sugarcane trash; use it for mulching to retain moisture."),
+        AgriTip(17, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1590483727827-024357228-91a4daadcfea", "ಕಬ್ಬಿನ ನಾಟಿಗೆ ಮೊಗ್ಗು ಚಿಪ್ (Bud chip) ವಿಧಾನ ಬಳಸುವುದರಿಂದ ಬೀಜದ ಖರ್ಚು ಉಳಿಸಬಹುದು.", "Using bud chip method for sugarcane planting saves seed cost."),
         AgriTip(18, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510", "ಈರುಳ್ಳಿ ಬೀಜಗಳನ್ನು ಬಿತ್ತುವ ಮೊದಲು ಕಾರ್ಬೆಂಡಾಜಿಮ್‌ನಿಂದ ಉಪಚರಿಸಿ. ಇದು ಕೊಳೆ ರೋಗ ತಡೆಯುತ್ತದೆ.", "Treat onion seeds with Carbendazim before sowing to prevent rot."),
         AgriTip(19, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510", "ಗಡ್ಡೆ ಬಲಿಯುವ ಹಂತದಲ್ಲಿ ಅತಿಯಾದ ಸಾರಜನಕ ಗೊಬ್ಬರ ನೀಡಬೇಡಿ. ಇದು ಸಂಗ್ರಹಣಾ ಸಾಮರ್ಥ್ಯ ಕುಗ್ಗಿಸುತ್ತದೆ.", "Avoid excess Nitrogen at bulb maturity as it reduces storage life."),
         AgriTip(20, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510", "ಈರುಳ್ಳಿಯನ್ನು ನೆರಳಿನಲ್ಲಿ ಚೆನ್ನಾಗಿ ಒಣಗಿಸಿದ ನಂತರವೇ ಶೇಖರಿಸಿ. ಇದು ಬಾಳಿಕೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Store onions only after proper curing in shade to increase shelf life."),
-        AgriTip(21, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಗದಗದ ಬಸಪ್ಪ ಅವರು ಈರುಳ್ಳಿಗೆ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ ಶೇ.40 ರಷ್ಟು ನೀರು ಉಳಿಸಿ ಉತ್ತಮ ಲಾಭ ಗಳಿಸಿದ್ದಾರೆ.", "Basappa from Gadag saved 40% water and earned more using drip irrigation for onions.", true),
+        AgriTip(21, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಗದಗದ ಬಸಪ್ಪ ಅವರು ಈರುಳ್ಳಿಗೆ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ ಶೇ.40 ರಷ್ಟು ನೀರು ಉಳಿಸಿ ಉತ್ತಮ ಲಾಭ ಗಳಿದ್ದಾರೆ.", "Basappa from Gadag saved 40% water and earned more using drip irrigation for onions.", true),
         AgriTip(22, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಮಂಡ್ಯದ ಗಿರಿಜಾ ಅವರು ಸಾವಯವ ಪದ್ಧತಿಯಲ್ಲಿ ಕಬ್ಬು ಬೆಳೆದು ಸಕ್ಕರೆ ಕಾರ್ಖಾನೆಯಿಂದ ಪ್ರಶಸ್ತಿ ಪಡೆದಿದ್ದಾರೆ.", "Girija from Mandya won awards for growing organic sugarcane.", true),
         AgriTip(23, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಕೊಪ್ಪಳದ ಶಿವಾನಂದ್ ಅವರು ದಾಳಿಂಬೆ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುವಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿದ್ದಾರೆ.", "Shivanand from Koppal successfully exports pomegranates to foreign markets.", true),
         AgriTip(24, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ದಾವಣಗೆರೆಯ ಲಕ್ಷ್ಮಿ ಅವರು ಎರೆಹುಳು ಗೊಬ್ಬರ ತಯಾರಿಕೆಯಿಂದ ಸ್ವಾವಲಂಬಿ ಜೀವನ ನಡೆಸುತ್ತಿದ್ದಾರೆ.", "Lakshmi from Davangere is self-reliant through vermicompost production.", true),
-        AgriTip(25, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಬೆಳಗಾವಿಯ ಸುರೇಶ್ ಅವರು ಮಿಶ್ರ ಬೆಳೆ ಪದ್ಧತಿಯಿಂದ ವರ್ಷವಿಡೀ ಆದಾಯ ಪಡೆಯುತ್ತಿದ್ದಾರೆ.", "Suresh from Belagavi gets year-round income through mixed cropping.", true)
+        AgriTip(25, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2", "ಬೆಳಗಾವಿಯ ಸುರೇಶ್ ಅವರು ಮಿಶ್ರ ಬೆಳೆ ಪದ್ಧತಿಯಿಂದ ವರ್ಷವಿಡೀ ಆದಾಯ ಪಡೆಯುತ್ತಿದ್ದಾರೆ.", "Suresh from Belagavi gets year-round income through mixed cropping.", true),
+        AgriTip(26, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಪ್ರತಿ 10 ದಿನಕ್ಕೊಮ್ಮೆ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ಕೀಟಗಳನ್ನು ದೂರವಿಡುತ್ತದೆ.", "Spray neem oil on tomato plants every 10 days to keep pests away."),
+        AgriTip(27, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಹಣ್ಣು ಬಿಡುವಾಗ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ. ಇದು ಗಿಡದ ಬುಡಕ್ಕೆ ನೇರವಾಗಿ ನೀರು ತಲುಪಿಸುತ್ತದೆ.", "Use drip irrigation for tomatoes to ensure water reaches the roots directly."),
+        AgriTip(28, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಗಿಡಗಳ ಕೆಳಗಿನ ಒಣಗಿದ ಎಲೆಗಳನ್ನು ತೆಗೆಯಿರಿ. ಇದು ರೋಗ ಹರಡುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Remove dry lower leaves from tomato plants to prevent disease spread."),
+        AgriTip(29, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಕೊಯ್ಲಿಗೆ ಮುನ್ನ ಬೆಳಗ್ಗೆ ಅಥವಾ ಸಂಜೆ ವೇಳೆ ನೀರು ಹಾಯಿಸುವುದು ಉತ್ತಮ.", "Watering tomatoes in the morning or evening before harvest is better."),
+        AgriTip(30, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಟೊಮೆಟೊ ಬೆಳೆಯಲ್ಲಿ ಬ್ಯಾಕ್ಟೀರಿಯಲ್ ವಿಲ್ಟ್ ತಡೆಗಟ್ಟಲು ಬ್ಲೀಚಿಂಗ್ ಪೌಡರ್ ಬಳಸಿ.", "Use bleaching powder to prevent bacterial wilt in tomato crops.")
     )
 
     var selectedCategory by remember { mutableStateOf("All") }
@@ -279,12 +308,12 @@ fun HomeScreenContent(lang: String) {
             }
         }
         val pagerState = rememberPagerState(pageCount = { filteredTips.size })
-        VerticalPager(state = pagerState, modifier = Modifier.weight(1f)) { page -> TipCard(filteredTips[page], lang) }
+        VerticalPager(state = pagerState, modifier = Modifier.weight(1f)) { page -> TipCard(filteredTips[page], lang, onSpeak) }
     }
 }
 
 @Composable
-fun TipCard(tip: AgriTip, lang: String) {
+fun TipCard(tip: AgriTip, lang: String, onSpeak: (String) -> Unit) {
     val categoryMap = mapOf(
         "Success Story" to "ಯಶೋಗಾಥೆ",
         "Success Stories" to "ಯಶೋಗಾಥೆ",
@@ -303,6 +332,14 @@ fun TipCard(tip: AgriTip, lang: String) {
                 AsyncImage(model = tip.imageUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 Surface(modifier = Modifier.padding(12.dp), color = if (tip.isSuccessStory) Color(0xFF4A148C) else Color(0xFFFFC107), shape = RoundedCornerShape(4.dp)) {
                     Text("${tip.symbol} $displayCategory", modifier = Modifier.padding(8.dp), fontWeight = FontWeight.Bold, color = if (tip.isSuccessStory) Color.White else Color.Black)
+                }
+                
+                // Voice Note Button
+                IconButton(
+                    onClick = { onSpeak(if (lang == "KN") tip.textKn else tip.textEn) },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(12.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Text("🔊", color = Color.White, fontSize = 20.sp)
                 }
             }
             Column(modifier = Modifier.fillMaxWidth().weight(1f).background(Color(0xFF3E2723)).padding(24.dp), verticalArrangement = Arrangement.Center) {
