@@ -282,10 +282,10 @@ fun MainContainer() {
 @Composable
 fun HomeScreenContent(lang: String, onSpeak: (String) -> Unit) {
     val allTips = listOf(
-        // Daily Tips (3) with Dates
-        AgriTip(1, "Daily Tip", "📢", "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=800", "ಬೆಳಿಗ್ಗೆ 10 ಗಂಟೆಯ ಮೊದಲು ಗದ್ದೆಗೆ ನೀರುಣಿಸುವುದು ಉತ್ತಮ. ಇದು ಮಣ್ಣಿನಲ್ಲಿ ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Watering before 10 AM is ideal. This helps the soil retain moisture.", date = "18/5, Sat"),
-        AgriTip(2, "Daily Tip", "📢", "https://images.unsplash.com/photo-1599148482840-d7d96558239a?q=80&w=800", "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money.", date = "17/5, Fri"),
-        AgriTip(3, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad?q=80&w=800", "ಕೃಷಿಯಲ್ಲಿ ನೈಸರ್ಗಿಕ ಗೊಬ್ಬರ ಬಳಸಿ. ಇದು ಮಣ್ಣಿನ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Use organic manure in farming. It increases soil fertility.", date = "16/5, Thu"),
+        // Daily Tips (3) with Dates - Rearranged to put the "today" tip first
+        AgriTip(1, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad?q=80&w=800", "ಕೃಷಿಯಲ್ಲಿ ನೈಸರ್ಗಿಕ ಗೊಬ್ಬರ ಬಳಸಿ. ಇದು ಮಣ್ಣಿನ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Use organic manure in farming. It increases soil fertility.", date = "18/5, Sat"),
+        AgriTip(2, "Daily Tip", "📢", "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=800", "ಬೆಳಿಗ್ಗೆ 10 ಗಂಟೆಯ ಮೊದಲು ಗದ್ದೆಗೆ ನೀರುಣಿಸುವುದು ಉತ್ತಮ. ಇದು ಮಣ್ಣಿನಲ್ಲಿ ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Watering before 10 AM is ideal. This helps the soil retain moisture.", date = "17/5, Fri"),
+        AgriTip(3, "Daily Tip", "📢", "https://images.unsplash.com/photo-1599148482840-d7d96558239a?q=80&w=800", "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money.", date = "16/5, Thu"),
 
         // Sugarcane (5)
         AgriTip(4, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=800", "ಕಬ್ಬಿನ ನಾಟಿ ಮಾಡಿದ 30 ದಿನಗಳ ನಂತರ ಮೊದಲ ಗೊಬ್ಬರ ನೀಡಿ. ಇದು ಬೆಳವಣಿಗೆ ವೇಗಗೊಳಿಸುತ್ತದೆ.", "Apply fertilizer 30 days after planting sugarcane. This accelerates growth."),
@@ -384,17 +384,17 @@ fun TipCard(tip: AgriTip, lang: String, onSpeak: (String) -> Unit) {
                 }
             }
             Column(modifier = Modifier.fillMaxWidth().weight(1f).background(Color(0xFF3E2723)).padding(24.dp), verticalArrangement = Arrangement.Center) {
-                Text(text = if (lang == "KN") tip.textKn else tip.textEn, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, lineHeight = 30.sp)
-                
                 if (tip.date != null) {
-                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = tip.date,
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                        color = Color(0xFFFFC107), // Gold color for high contrast visibility
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
+
+                Text(text = if (lang == "KN") tip.textKn else tip.textEn, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, lineHeight = 30.sp)
             }
         }
     }
