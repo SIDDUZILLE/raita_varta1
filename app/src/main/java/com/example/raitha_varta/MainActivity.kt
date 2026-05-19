@@ -17,6 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.VerticalPager
@@ -65,7 +66,16 @@ data class AgriTip(
     val imageUrl: String,
     val textKn: String,
     val textEn: String,
-    val isSuccessStory: Boolean = false
+    val isSuccessStory: Boolean = false,
+    val date: String? = null
+)
+
+data class FarmerPost(
+    val id: Int,
+    val farmerName: String,
+    val message: String,
+    val image: Any? = null,
+    val date: String
 )
 
 // --- USER MANAGER (JSON STORAGE) ---
@@ -103,10 +113,6 @@ class UserManager(context: Context) {
     fun authenticate(name: String, password: String): User? {
         return getUsers().find { it.name.equals(name, ignoreCase = true) && it.password == password }
     }
-
-    fun authenticateWithPassword(phone: String, password: String): User? {
-        return getUsers().find { it.phone == phone && it.password == password }
-    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -128,10 +134,12 @@ fun MainContainer() {
     
     // Voice Note (TTS) Setup
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    var ttsReady by remember { mutableStateOf(false) }
+
     DisposableEffect(Unit) {
         val speech = TextToSpeech(context) { status ->
-            if (status != TextToSpeech.ERROR) {
-                // Initialized
+            if (status == TextToSpeech.SUCCESS) {
+                ttsReady = true
             }
         }
         tts = speech
@@ -142,6 +150,10 @@ fun MainContainer() {
     }
 
     fun speak(text: String, lang: String) {
+        if (!ttsReady) {
+            Toast.makeText(context, "Voice engine starting...", Toast.LENGTH_SHORT).show()
+            return
+        }
         tts?.apply {
             language = if (lang == "KN") Locale("kn", "IN") else Locale.US
             speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
@@ -154,6 +166,14 @@ fun MainContainer() {
     var selectedScreen by remember { mutableStateOf(0) }
     var showWeatherDetail by remember { mutableStateOf(false) }
     var language by remember { mutableStateOf("KN") }
+
+    // Community Data (In Memory for Demo)
+    val communityPosts = remember { 
+        mutableStateListOf(
+            FarmerPost(1, "Mahesh", "Used organic fertilizer for my paddy, results are great!", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=800", "May 5"),
+            FarmerPost(2, "Ravi", "My tomato crop is flowering well after using 19:19:19 fertilizer.", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=800", "May 6")
+        )
+    }
 
     when (authState) {
         "SIGNUP" -> SignupPage(
@@ -191,7 +211,7 @@ fun MainContainer() {
                                             text = { Text("Edit Profile") },
                                             onClick = { 
                                                 showMenu = false
-                                                selectedScreen = 2 // Navigate to Profile
+                                                selectedScreen = 3 // Navigate to Profile
                                             }
                                         )
                                         DropdownMenuItem(
@@ -233,8 +253,9 @@ fun MainContainer() {
                 bottomBar = {
                     NavigationBar(containerColor = Color(0xFFF8F9FA)) {
                         NavigationBarItem(selected = selectedScreen == 0, onClick = { selectedScreen = 0 }, icon = { Text("🏠", fontSize = 20.sp) }, label = { Text("Home") })
-                        NavigationBarItem(selected = selectedScreen == 2, onClick = { selectedScreen = 2 }, icon = { Text("👤", fontSize = 20.sp) }, label = { Text("You") })
                         NavigationBarItem(selected = selectedScreen == 1, onClick = { selectedScreen = 1 }, icon = { Text("📸", fontSize = 20.sp) }, label = { Text("Expert") })
+                        NavigationBarItem(selected = selectedScreen == 2, onClick = { selectedScreen = 2 }, icon = { Text("👥", fontSize = 20.sp) }, label = { Text("Posts") })
+                        NavigationBarItem(selected = selectedScreen == 3, onClick = { selectedScreen = 3 }, icon = { Text("👤", fontSize = 20.sp) }, label = { Text("You") })
                     }
                 }
             ) { innerPadding ->
@@ -248,7 +269,8 @@ fun MainContainer() {
                                 HomeScreenContent(lang = language, onSpeak = { text -> speak(text, language) })
                             }
                             1 -> ExpertAskContent(lang = language)
-                            2 -> ProfileScreen(lang = language, user = currentUser)
+                            2 -> CommunityScreen(lang = language, posts = communityPosts, userName = currentUser?.name ?: "Farmer")
+                            3 -> ProfileScreen(lang = language, user = currentUser)
                         }
                     }
                 }
@@ -260,51 +282,55 @@ fun MainContainer() {
 @Composable
 fun HomeScreenContent(lang: String, onSpeak: (String) -> Unit) {
     val allTips = listOf(
-        // Daily Tips (3)
-        AgriTip(1, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad?q=80&w=500", "ಬೆಳಿಗ್ಗೆ 10 ಗಂಟೆಯ ಮೊದಲು ಗದ್ದೆಗೆ ನೀರುಣಿಸುವುದು ಉತ್ತಮ. ಇದು ಮಣ್ಣಿನಲ್ಲಿ ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Watering before 10 AM is ideal. This helps the soil retain moisture."),
-        AgriTip(2, "Daily Tip", "📢", "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=500", "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money."),
-        AgriTip(3, "Daily Tip", "📢", "https://images.unsplash.com/photo-1599148482840-d7d96558239a?q=80&w=500", "ಕೃಷಿಯಲ್ಲಿ ನೈಸರ್ಗಿಕ ಗೊಬ್ಬರ ಬಳಸಿ. ಇದು ಮಣ್ಣಿನ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Use organic manure in farming. It increases soil fertility."),
+        // Daily Tips (3) with Dates
+        AgriTip(1, "Daily Tip", "📢", "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=800", "ಬೆಳಿಗ್ಗೆ 10 ಗಂಟೆಯ ಮೊದಲು ಗದ್ದೆಗೆ ನೀರುಣಿಸುವುದು ಉತ್ತಮ. ಇದು ಮಣ್ಣಿನಲ್ಲಿ ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Watering before 10 AM is ideal. This helps the soil retain moisture.", date = "18/5, Sat"),
+        AgriTip(2, "Daily Tip", "📢", "https://images.unsplash.com/photo-1599148482840-d7d96558239a?q=80&w=800", "ಮಣ್ಣಿನ ಆರೋಗ್ಯ ಕಾರ್ಡ್ ಪರೀಕ್ಷಿಸಿ ನಂತರವೇ ಗೊಬ್ಬರ ಹಾಕಿ. ಇದು ಹಣ ಉಳಿಸುತ್ತದೆ.", "Test soil health card before applying fertilizer. This saves money.", date = "17/5, Fri"),
+        AgriTip(3, "Daily Tip", "📢", "https://images.unsplash.com/photo-1495539406979-bf61750d38ad?q=80&w=800", "ಕೃಷಿಯಲ್ಲಿ ನೈಸರ್ಗಿಕ ಗೊಬ್ಬರ ಬಳಸಿ. ಇದು ಮಣ್ಣಿನ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Use organic manure in farming. It increases soil fertility.", date = "16/5, Thu"),
 
-        // Sugarcane (5) - Fixed Image
-        AgriTip(4, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ಕಬ್ಬಿನ ನಾಟಿ ಮಾಡಿದ 30 ದಿನಗಳ ನಂತರ ಮೊದಲ ಗೊಬ್ಬರ ನೀಡಿ. ಇದು ಬೆಳವಣಿಗೆ ವೇಗಗೊಳಿಸುತ್ತದೆ.", "Apply fertilizer 30 days after planting sugarcane. This accelerates growth."),
-        AgriTip(5, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility."),
-        AgriTip(6, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ಕಬ್ಬಿನ ಸೋಗೆಯನ್ನು ಸುಡಬೇಡಿ, ಅದನ್ನು ಹೊದಿಕೆಯಾಗಿ ಬಳಸಿ. ಇದು ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Don't burn sugarcane trash; use it for mulching to retain moisture."),
-        AgriTip(7, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ಕಬ್ಬಿನ ನಾಟಿಗೆ ಮೊಗ್ಗು ಚಿಪ್ (Bud chip) ವಿಧಾನ ಬಳಸುವುದರಿಂದ ಬೀಜದ ಖರ್ಚು ಉಳಿಸಬಹುದು.", "Using bud chip method for sugarcane planting saves seed cost."),
-        AgriTip(8, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=500", "ನಾಟಿ ಮಾಡುವಾಗ ಸಾಲುಗಳ ನಡುವೆ 4 ಅಡಿ ಅಂತರ ಕಾಪಾಡಿ.", "Maintain 4 feet distance between rows during planting."),
+        // Sugarcane (5)
+        AgriTip(4, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=800", "ಕಬ್ಬಿನ ನಾಟಿ ಮಾಡಿದ 30 ದಿನಗಳ ನಂತರ ಮೊದಲ ಗೊಬ್ಬರ ನೀಡಿ. ಇದು ಬೆಳವಣಿಗೆ ವೇಗಗೊಳಿಸುತ್ತದೆ.", "Apply fertilizer 30 days after planting sugarcane. This accelerates growth."),
+        AgriTip(5, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=800", "ಕಬ್ಬಿನಲ್ಲಿ ಅಂತರ ಬೆಳೆಯಾಗಿ ಹೆಸರು ಅಥವಾ ಉದ್ದು ಬೆಳೆಯಿರಿ. ಇದು ಭೂಮಿಯ ಫಲವತ್ತತೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Grow green gram or black gram as intercrop in sugarcane to improve soil fertility."),
+        AgriTip(6, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=800", "ಕಬ್ಬಿನ ಸೋಗೆಯನ್ನು ಸುಡಬೇಡಿ, ಅದನ್ನು ಹೊದಿಕೆಯಾಗಿ ಬಳಸಿ. ಇದು ತೇವಾಂಶ ಕಾಪಾಡುತ್ತದೆ.", "Don't burn sugarcane trash; use it for mulching to retain moisture."),
+        AgriTip(7, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=800", "ಕಬ್ಬಿನ ನಾಟಿಗೆ ಮೊಗ್ಗು ಚಿಪ್ (Bud chip) ವಿಧಾನ ಬಳಸುವುದರಿಂದ ಬೀಜದ ಖರ್ಚು ಉಳಿಸಬಹುದು.", "Using bud chip method for sugarcane planting saves seed cost."),
+        AgriTip(8, "Sugarcane", "🎋", "https://images.unsplash.com/photo-1594911775313-0e86b9766627?q=80&w=800", "ನಾಟಿ ಮಾಡುವಾಗ ಸಾಲುಗಳ ನಡುವೆ 4 ಅಡಿ ಅಂತರ ಕಾಪಾಡಿ.", "Maintain 4 feet distance between rows during planting."),
 
-        // Tomato (6)
-        AgriTip(9, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಆಧಾರ ನೀಡಿ. ಇದು ಹಣ್ಣುಗಳು ಕೊಳೆಯುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Provide support to tomato plants. This prevents fruit rot."),
-        AgriTip(10, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊಗೆ ಕ್ಯಾಲ್ಸಿಯಂ ಕೊರತೆಯಾದರೆ ಹಣ್ಣಿನ ತಳಭಾಗ ಕೊಳೆಯಬಹುದು. ಸುಣ್ಣದ ತಿಳಿನೀರು ಬಳಸಿ.", "Calcium deficiency in tomatoes causes blossom end rot. Use lime water treatment."),
-        AgriTip(11, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಪ್ರತಿ 10 ದಿನಕ್ಕೊಮ್ಮೆ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ಕೀಟಗಳನ್ನು ದೂರವಿಡುತ್ತದೆ.", "Spray neem oil on tomato plants every 10 days to keep pests away."),
-        AgriTip(12, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊ ಹಣ್ಣು ಬಿಡುವಾಗ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ. ಇದು ಗಿಡದ ಬುಡಕ್ಕೆ ನೇರವಾಗಿ ನೀರು ತಲುಪಿಸುತ್ತದೆ.", "Use drip irrigation for tomatoes to ensure water reaches the roots directly."),
-        AgriTip(13, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಟೊಮೆಟೊ ಗಿಡಗಳ ಕೆಳಗಿನ ಒಣಗಿದ ಎಲೆಗಳನ್ನು ತೆಗೆಯಿರಿ. ಇದು ರೋಗ ಹರಡುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Remove dry lower leaves from tomato plants to prevent disease spread."),
-        AgriTip(14, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=500", "ಬ್ಯಾಕ್ಟೀರಿಯಲ್ ವಿಲ್ಟ್ ತಡೆಗಟ್ಟಲು ಬ್ಲೀಚಿಂಗ್ ಪೌಡರ್ ಬಳಸಿ.", "Use bleaching powder to prevent bacterial wilt."),
+        // Tomato (10)
+        AgriTip(9, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=800", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಆಧಾರ ನೀಡಿ. ಇದು ಹಣ್ಣುಗಳು ಕೊಳೆಯುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Provide support to tomato plants. This prevents fruit rot."),
+        AgriTip(10, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=800", "ಟೊಮೆಟೊಗೆ ಕ್ಯಾಲ್ಸಿಯಂ ಕೊರತೆಯಾದರೆ ಹಣ್ಣಿನ ತಳಭಾಗ ಕೊಳೆಯಬಹುದು. ಸುಣ್ಣದ ತಿಳಿನೀರು ಬಳಸಿ.", "Calcium deficiency in tomatoes causes blossom end rot. Use lime water treatment."),
+        AgriTip(11, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=800", "ಟೊಮೆಟೊ ಗಿಡಗಳಿಗೆ ಪ್ರತಿ 10 ದಿನಕ್ಕೊಮ್ಮೆ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ಕೀಟಗಳನ್ನು ದೂರವಿಡುತ್ತದೆ.", "Spray neem oil on tomato plants every 10 days to keep pests away."),
+        AgriTip(12, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=800", "ಟೊಮೆಟೊ ಹಣ್ಣು ಬಿಡುವಾಗ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ. ಇದು ಗಿಡದ ಬುಡಕ್ಕೆ ನೇರವಾಗಿ ನೀರು ತಲುಪಿಸುತ್ತದೆ.", "Use drip irrigation for tomatoes to ensure water reaches the roots directly."),
+        AgriTip(13, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=800", "ಟೊಮೆಟೊ ಗಿಡಗಳ ಕೆಳಗಿನ ಒಣಗಿದ ಎಲೆಗಳನ್ನು ತೆಗೆಯಿರಿ. ಇದು ರೋಗ ಹರಡುವುದನ್ನು ತಡೆಯುತ್ತದೆ.", "Remove dry lower leaves from tomato plants to prevent disease spread."),
+        AgriTip(14, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=800", "ಬ್ಯಾಕ್ಟೀರಿಯಲ್ ವಿಲ್ಟ್ ತಡೆಗಟ್ಟಲು ಬ್ಲೀಚಿಂಗ್ ಪೌಡರ್ ಬಳಸಿ.", "Use bleaching powder to prevent bacterial wilt."),
+        AgriTip(26, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಬೆಳೆಯನ್ನು ಆಗಾಗ ಪರೀಕ್ಷಿಸಿ. ಆರಂಭಿಕ ಹಂತದಲ್ಲಿ ಕೀಟಬಾಧೆ ಪತ್ತೆಹಚ್ಚುವುದು ಸುಲಭ.", "Inspect crops often. Early detection of pests is easier."),
+        AgriTip(27, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಗಿಡದ ಬುಡಕ್ಕೆ ಮಲ್ಚಿಂಗ್ ಮಾಡುವುದರಿಂದ ಕಳೆ ಹತೋಟಿ ಮಾಡಬಹುದು.", "Mulching around plant base helps control weeds."),
+        AgriTip(28, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಅತಿಯಾದ ನೀರುಣಿಸಬೇಡಿ, ಇದು ಬೇರು ಕೊಳೆತಕ್ಕೆ ಕಾರಣವಾಗಬಹುದು.", "Avoid overwatering, as it can lead to root rot."),
+        AgriTip(29, "Tomato", "🍅", "https://images.unsplash.com/photo-1592924357228-91a4daadcfea", "ಹಣ್ಣುಗಳನ್ನು ಸರಿಯಾದ ಹಂತದಲ್ಲಿ ಕೊಯ್ಲು ಮಾಡಿ.", "Harvest fruits at the right stage of maturity."),
 
         // Onion (5)
-        AgriTip(15, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಈರುಳ್ಳಿ ಕೊಯ್ಲಿಗೆ 15 ದಿನ ಮೊದಲೇ ನೀರು ನಿಲ್ಲಿಸಿ. ಇದು ಈರುಳ್ಳಿ ಬಾಳಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Stop watering 15 days before harvest. This improves storage life."),
-        AgriTip(16, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಈರುಳ್ಳಿ ಬೀಜಗಳನ್ನು ಬಿತ್ತುವ ಮೊದಲು ಕಾರ್ಬೆಂಡಾಜಿಮ್‌ನಿಂದ ಉಪಚರಿಸಿ. ಇದು ಕೊಳೆ ರೋಗ ತಡೆಯುತ್ತದೆ.", "Treat onion seeds with Carbendazim before sowing to prevent rot."),
-        AgriTip(17, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಗಡ್ಡೆ ಬಲಿಯುವ ಹಂತದಲ್ಲಿ ಅತಿಯಾದ ಸಾರಜನಕ ಗೊಬ್ಬರ ನೀಡಬೇಡಿ. ಇದು ಸಂಗ್ರಹಣಾ ಸಾಮರ್ಥ್ಯ ಕುಗ್ಗಿಸುತ್ತದೆ.", "Avoid excess Nitrogen at bulb maturity as it reduces storage life."),
-        AgriTip(18, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಈರುಳ್ಳಿಯನ್ನು ನೆರಳಿನಲ್ಲಿ ಚೆನ್ನಾಗಿ ಒಣಗಿಸಿದ ನಂತರವೇ ಶೇಖರಿಸಿ. ಇದು ಬಾಳಿಕೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Store onions only after proper curing in shade to increase shelf life."),
-        AgriTip(19, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=500", "ಕಳೆ ನಿಯಂತ್ರಣಕ್ಕೆ ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಎಡೆಕುಂಟೆ ಹೊಡೆಯಿರಿ.", "Timely inter-cultivation for weed control."),
+        AgriTip(15, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=800", "ಈರುಳ್ಳಿ ಕೊಯ್ಲಿಗೆ 15 ದಿನ ಮೊದಲೇ ನೀರು ನಿಲ್ಲಿಸಿ. ಇದು ಈರುಳ್ಳಿ ಬಾಳಿಕೆಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Stop watering 15 days before harvest. This improves storage life."),
+        AgriTip(16, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=800", "ಈರುಳ್ಳಿ ಬೀಜಗಳನ್ನು ಬಿತ್ತುವ ಮೊದಲು ಕಾರ್ಬೆಂಡಾಜಿಮ್‌ನಿಂದ ಉಪಚರಿಸಿ. ಇದು ಕೊಳೆ ರೋಗ ತಡೆಯುತ್ತದೆ.", "Treat onion seeds with Carbendazim before sowing to prevent rot."),
+        AgriTip(17, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=800", "ಗಡ್ಡೆ ಬಲಿಯುವ ಹಂತದಲ್ಲಿ ಅತಿಯಾದ ಸಾರಜನಕ ಗೊಬ್ಬರ ನೀಡಬೇಡಿ. ಇದು ಸಂಗ್ರಹಣಾ ಸಾಮರ್ಥ್ಯ ಕುಗ್ಗಿಸುತ್ತದೆ.", "Avoid excess Nitrogen at bulb maturity as it reduces storage life."),
+        AgriTip(18, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=800", "ಈರುಳ್ಳಿಯನ್ನು ನೆರಳಿನಲ್ಲಿ ಚೆನ್ನಾಗಿ ಒಣಗಿಸಿದ ನಂತರವೇ ಶೇಖರಿಸಿ. ಇದು ಬಾಳಿಕೆ ಹೆಚ್ಚಿಸುತ್ತದೆ.", "Store onions only after proper curing in shade to increase shelf life."),
+        AgriTip(19, "Onion", "🧅", "https://images.unsplash.com/photo-1508747703725-719777637510?q=80&w=800", "ಕಳೆ ನಿಯಂತ್ರಣಕ್ಕೆ ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಎಡೆಕುಂಟೆ ಹೊಡೆಯಿರಿ.", "Timely inter-cultivation for weed control."),
 
         // Paddy (5)
-        AgriTip(20, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಭತ್ತದ ಗದ್ದೆಯಲ್ಲಿ ಸಾಲು ನಾಟಿ ಮಾಡುವುದರಿಂದ ಕಳೆ ತೆಗೆಯಲು ಸುಲಭವಾಗುತ್ತದೆ ಮತ್ತು ಗಾಳಿಯ ಸಂಚಾರ ಹೆಚ್ಚುತ್ತದೆ.", "Row planting in paddy fields makes weeding easier and improves air circulation."),
-        AgriTip(21, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಭತ್ತಕ್ಕೆ ಎಸ್.ಆರ್.ಐ (SRI) ಪದ್ಧತಿ ಅಳವಡಿಸುವುದರಿಂದ ಕಡಿಮೆ ನೀರಿನಲ್ಲಿ ಹೆಚ್ಚು ಇಳುವರಿ ಪಡೆಯಬಹುದು.", "Adopting SRI method in paddy yields more with less water."),
-        AgriTip(22, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಸತುವು (Zinc) ಕೊರತೆ ಕಾಣಿಸಿಕೊಂಡರೆ ಪ್ರತಿ ಎಕರೆಗೆ 10 ಕೆಜಿ ಜಿಂಕ್ ಸಲ್ಫೇಟ್ ಸಿಂಪಡಿಸಿ.", "Spray 10kg Zinc Sulphate per acre if deficiency symptoms appear."),
-        AgriTip(23, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಕೊನೊ ವೀಡರ್ ಬಳಸಿ ಕಳೆ ತೆಗೆಯುವುದರಿಂದ ಮಣ್ಣಿಗೆ ಗಾಳಿ ಸಂಚಾರ ಹೆಚ್ಚಿ ಬೇರುಗಳು ಚೆನ್ನಾಗಿ ಬೆಳೆಯುತ್ತವೆ.", "Using Cono weeder for weeding increases soil aeration and root growth."),
-        AgriTip(24, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=500", "ಕಂದು ಜಿಗಿ ಹುಳು ಬಾಧೆ ತಡೆಗಟ್ಟಲು ಬೆಳಕು ಬಲೆ ಬಳಸಿ.", "Use light traps to control Brown Plant Hopper."),
+        AgriTip(20, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=800", "ಭತ್ತದ ಗದ್ದೆಯಲ್ಲಿ ಸಾಲು ನಾಟಿ ಮಾಡುವುದರಿಂದ ಕಳೆ ತೆಗೆಯಲು ಸುಲಭವಾಗುತ್ತದೆ ಮತ್ತು ಗಾಳಿಯ ಸಂಚಾರ ಹೆಚ್ಚುತ್ತದೆ.", "Row planting in paddy fields makes weeding easier and improves air circulation."),
+        AgriTip(21, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=800", "ಭತ್ತಕ್ಕೆ ಎಸ್.ಆರ್.ಐ (SRI) ಪದ್ಧತಿ ಅಳವಡಿಸುವುದರಿಂದ ಕಡಿಮೆ ನೀರಿನಲ್ಲಿ ಹೆಚ್ಚು ಇಳುವರಿ ಪಡೆಯಬಹುದು.", "Adopting SRI method in paddy yields more with less water."),
+        AgriTip(22, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=800", "ಸತುವು (Zinc) ಕೊರತೆ ಕಾಣಿಸಿಕೊಂಡರೆ ಪ್ರತಿ ಎಕರೆಗೆ 10 ಕೆಜಿ ಜಿಂಕ್ ಸಲ್ಫೇಟ್ ಸಿಂಪಡಿಸಿ.", "Spray 10kg Zinc Sulphate per acre if deficiency symptoms appear."),
+        AgriTip(23, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=800", "ಕೊನೊ ವೀಡರ್ ಬಳಸಿ ಕಳೆ ತೆಗೆಯುವುದರಿಂದ ಮಣ್ಣಿಗೆ ಗಾಳಿ ಸಂಚಾರ ಹೆಚ್ಚಿ ಬೇರುಗಳು ಚೆನ್ನಾಗಿ ಬೆಳೆಯುತ್ತವೆ.", "Using Cono weeder for weeding increases soil aeration and root growth."),
+        AgriTip(24, "Paddy", "🌾", "https://images.unsplash.com/photo-1536633100342-99933550e58d?q=80&w=800", "ಕಂದು ಜಿಗಿ ಹುಳು ಬಾಧೆ ತಡೆಗಟ್ಟಲು ಬೆಳಕು ಬಲೆ ಬಳಸಿ.", "Use light traps to control Brown Plant Hopper."),
 
-        // Chilli (2) - Fixed Image
-        AgriTip(25, "Chilli", "🌶️", "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?q=80&w=500", "ಎಲೆ ಮುದುರು ರೋಗ ಕಂಡರೆ ತಕ್ಷಣ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಕೀಟಗಳನ್ನು ತಡೆಯುತ್ತದೆ.", "Spray neem oil if you notice leaf curl disease in chilli plants. This naturally prevents pest spread."),
-        AgriTip(26, "Chilli", "🌶️", "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?q=80&w=500", "ಮೆಣಸಿನಕಾಯಿಯಲ್ಲಿ ಬೂದಿ ರೋಗಕ್ಕೆ ಗಂಧಕದ ಪುಡಿ ಬಳಸಿ.", "Use sulfur powder for powdery mildew in chilli."),
+        // Chilli (2)
+        AgriTip(25, "Chilli", "🌶️", "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?q=80&w=800", "ಎಲೆ ಮುದುರು ರೋಗ ಕಂಡರೆ ತಕ್ಷಣ ಬೇವಿನ ಎಣ್ಣೆ ಸಿಂಪಡಿಸಿ. ಇದು ನೈಸರ್ಗಿಕವಾಗಿ ಕೀಟಗಳನ್ನು ತಡೆಯುತ್ತದೆ.", "Spray neem oil if you notice leaf curl disease in chilli plants. This naturally prevents pest spread."),
+        AgriTip(26, "Chilli", "🌶️", "https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?q=80&w=800", "ಮೆಣಸಿನಕಾಯಿಯಲ್ಲಿ ಬೂದಿ ರೋಗಕ್ಕೆ ಗಂಧಕದ ಪುಡಿ ಬಳಸಿ.", "Use sulfur powder for powdery mildew in chilli."),
 
         // Success Stories (6)
-        AgriTip(27, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=500", "ರಾಯಚೂರಿನ ಮಲ್ಲಮ್ಮ ಅವರು ಸಕಾಲದಲ್ಲಿ ಕಳೆ ಕೀಳುವ ಮೂಲಕ ಲಾಭ ಗಳಿದ್ದಾರೆ. ನೀವು ಸಹ ಈ ವಿಧಾನದಿಂದ ಶ್ರಮ ಉಳಿಸಬಹುದು.", "Mallamma from Raichur doubled profits by timely weeding. You can also save effort using this method.", true),
-        AgriTip(28, "Success Story", "🏆", "https://images.unsplash.com/photo-1492496913980-501348b61469?q=80&w=500", "ಧಾರವಾಡದ ಮಂಜುನಾಥ್ ಅವರು ಸಮಗ್ರ ಕೃಷಿ ಪದ್ಧತಿಯಿಂದ ವಾರ್ಷಿಕ 5 ಲಕ್ಷ ಆದಾಯ ಗಳಿಸುತ್ತಿದ್ದಾರೆ.", "Manjunath from Dharwad earns 5 lakhs annually through integrated farming systems.", true),
-        AgriTip(29, "Success Story", "🏆", "https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?q=80&w=500", "ಚಿಕ್ಕಮಗಳೂರಿನ ಕಾವೇರಿ ಅವರು ಸಾವಯವ ಕಾಫಿ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುತ್ತಿದ್ದಾರೆ.", "Kaveri from Chikmagalur exports organic coffee to foreign countries.", true),
-        AgriTip(30, "Success Story", "🏆", "https://images.unsplash.com/photo-1595113316349-9fa4eb24f884?q=80&w=500", "ಗದಗದ ಬಸಪ್ಪ ಅವರು ಈರುಳ್ಳಿಗೆ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ ಶೇ.40 ರಷ್ಟು ನೀರು ಉಳಿಸಿ ಉತ್ತಮ ಲಾಭ ಗಳಿದ್ದಾರೆ.", "Basappa from Gadag saved 40% water and earned more using drip irrigation for onions.", true),
-        AgriTip(31, "Success Story", "🏆", "https://images.unsplash.com/photo-1589923188900-85dae523342b?q=80&w=500", "ಮಂಡ್ಯದ ಗಿರಿಜಾ ಅವರು ಸಾವಯವ ಪದ್ಧತಿಯಲ್ಲಿ ಕಬ್ಬು ಬೆಳೆದು ಸಕ್ಕರೆ ಕಾರ್ಖಾನೆಯಿಂದ ಪ್ರಶಸ್ತಿ ಪಡೆದಿದ್ದಾರೆ.", "Girija from Mandya won awards for growing organic sugarcane.", true),
-        AgriTip(32, "Success Story", "🏆", "https://images.unsplash.com/photo-1495908333425-29a1e0918c5f?q=80&w=500", "ಕೊಪ್ಪಳದ ಶಿವಾನಂದ್ ಅವರು ದಾಳಿಂಬೆ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುವಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿದ್ದಾರೆ.", "Shivanand from Koppal successfully exports pomegranates to foreign markets.", true)
+        AgriTip(27, "Success Story", "🏆", "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=800", "ರಾಯಚೂರಿನ ಮಲ್ಲಮ್ಮ ಅವರು ಸಕಾಲದಲ್ಲಿ ಕಳೆ ಕೀಳುವ ಮೂಲಕ ಲಾಭ ಗಳಿದ್ದಾರೆ. ನೀವು ಸಹ ಈ ವಿಧಾನದಿಂದ ಶ್ರಮ ಉಳಿಸಬಹುದು.", "Mallamma from Raichur doubled profits by timely weeding. You can also save effort using this method.", true),
+        AgriTip(28, "Success Story", "🏆", "https://images.unsplash.com/photo-1492496913980-501348b61469?q=80&w=800", "ಧಾರವಾಡದ ಮಂಜುನಾಥ್ ಅವರು ಸಮಗ್ರ ಕೃಷಿ ಪದ್ಧತಿಯಿಂದ ವಾರ್ಷಿಕ 5 ಲಕ್ಷ ಆದಾಯ ಗಳಿಸುತ್ತಿದ್ದಾರೆ.", "Manjunath from Dharwad earns 5 lakhs annually through integrated farming systems.", true),
+        AgriTip(29, "Success Story", "🏆", "https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?q=80&w=800", "ಚಿಕ್ಕಮಗಳೂರಿನ ಕಾವೇರಿ ಅವರು ಸಾವಯವ ಕಾಫಿ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುತ್ತಿದ್ದಾರೆ.", "Kaveri from Chikmagalur exports organic coffee to foreign countries.", true),
+        AgriTip(30, "Success Story", "🏆", "https://images.unsplash.com/photo-1595113316349-9fa4eb24f884?q=80&w=800", "ಗದಗದ ಬಸಪ್ಪ ಅವರು ಈರುಳ್ಳಿಗೆ ಹನಿ ನೀರಾವರಿ ಬಳಸಿ ಶೇ.40 ರಷ್ಟು ನೀರು ಉಳಿಸಿ ಉತ್ತಮ ಲಾಭ ಗಳಿದ್ದಾರೆ.", "Basappa from Gadag saved 40% water and earned more using drip irrigation for onions.", true),
+        AgriTip(31, "Success Story", "🏆", "https://images.unsplash.com/photo-1589923188900-85dae523342b?q=80&w=800", "ಮಂಡ್ಯದ ಗಿರಿಜಾ ಅವರು ಸಾವಯವ ಪದ್ಧತಿಯಲ್ಲಿ ಕಬ್ಬು ಬೆಳೆದು ಸಕ್ಕರೆ ಕಾರ್ಖಾನೆಯಿಂದ ಪ್ರಶಸ್ತಿ ಪಡೆದಿದ್ದಾರೆ.", "Girija from Mandya won awards for growing organic sugarcane.", true),
+        AgriTip(32, "Success Story", "🏆", "https://images.unsplash.com/photo-1495908333425-29a1e0918c5f?q=80&w=800", "ಕೊಪ್ಪಳದ ಶಿವಾನಂದ್ ಅವರು ದಾಳಿಂಬೆ ಬೆಳೆದು ವಿದೇಶಕ್ಕೆ ರಫ್ತು ಮಾಡುವಲ್ಲಿ ಯಶಸ್ವಿಯಾಗಿದ್ದಾರೆ.", "Shivanand from Koppal successfully exports pomegranates to foreign markets.", true)
     )
 
     var selectedCategory by remember { mutableStateOf("All") }
@@ -359,6 +385,94 @@ fun TipCard(tip: AgriTip, lang: String, onSpeak: (String) -> Unit) {
             }
             Column(modifier = Modifier.fillMaxWidth().weight(1f).background(Color(0xFF3E2723)).padding(24.dp), verticalArrangement = Arrangement.Center) {
                 Text(text = if (lang == "KN") tip.textKn else tip.textEn, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, lineHeight = 30.sp)
+                
+                if (tip.date != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = tip.date,
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CommunityScreen(lang: String, posts: MutableList<FarmerPost>, userName: String) {
+    var showAddPost by remember { mutableStateOf(false) }
+    var newMessage by remember { mutableStateOf("") }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        selectedImageUri = uri
+    }
+
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showAddPost = true }, containerColor = Color(0xFF2E7D32)) {
+                Text("➕", color = Color.White, fontSize = 24.sp)
+            }
+        }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            if (showAddPost) {
+                Card(modifier = Modifier.padding(16.dp).fillMaxWidth(), elevation = CardDefaults.cardElevation(8.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(if (lang == "KN") "ಹೊಸ ಪೋಸ್ಟ್ ರಚಿಸಿ" else "Share a New Tip", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = newMessage,
+                            onValueChange = { newMessage = it },
+                            label = { Text(if (lang == "KN") "ನಿಮ್ಮ ಸಲಹೆ/ಮಾಹಿತಿ" else "Your Farming Tip") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { galleryLauncher.launch("image/*") }, colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)) {
+                            Text(if (lang == "KN") "ಫೋಟೋ ಸೇರಿಸಿ" else "Add Photo")
+                        }
+                        if (selectedImageUri != null) {
+                            Text("Image Selected ✅", color = Color(0xFF2E7D32), fontSize = 12.sp)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = { showAddPost = false }) { Text("Cancel") }
+                            Button(onClick = {
+                                if (newMessage.isNotEmpty()) {
+                                    posts.add(0, FarmerPost(posts.size + 1, userName, newMessage, selectedImageUri, "Today"))
+                                    newMessage = ""
+                                    selectedImageUri = null
+                                    showAddPost = false
+                                }
+                            }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))) {
+                                Text(if (lang == "KN") "ಪೋಸ್ಟ್ ಮಾಡಿ" else "Post Now")
+                            }
+                        }
+                    }
+                }
+            }
+
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                items(posts) { post ->
+                    Card(modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(4.dp)) {
+                        Column {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Box(modifier = Modifier.size(40.dp).background(Color(0xFFE8F5E9), CircleShape), contentAlignment = Alignment.Center) {
+                                    Text(post.farmerName.take(1), fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                }
+                                Column(modifier = Modifier.padding(start = 12.dp)) {
+                                    Text(post.farmerName, fontWeight = FontWeight.Bold)
+                                    Text(post.date, fontSize = 12.sp, color = Color.Gray)
+                                }
+                            }
+                            if (post.image != null) {
+                                AsyncImage(model = post.image, contentDescription = null, modifier = Modifier.fillMaxWidth().height(200.dp), contentScale = ContentScale.Crop)
+                            }
+                            Text(post.message, modifier = Modifier.padding(12.dp), fontSize = 16.sp)
+                        }
+                    }
+                }
             }
         }
     }
@@ -785,7 +899,7 @@ fun SignupPage(userManager: UserManager, onNavigateToLogin: () -> Unit, onSignup
 fun WeatherWidget(onClick: () -> Unit, lang: String) {
     Row(modifier = Modifier.fillMaxWidth().padding(16.dp).background(Color(0xFFE8F5E9), shape = RoundedCornerShape(12.dp)).clickable { onClick() }.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Column {
-            Text(if (lang == "KN") "ಬೆಂಗಳೂರು, 7 ಮೇ" else "Bengaluru, 7 May", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+            Text(if (lang == "KN") "ಬೆಂಗಳೂರು, 8 ಮೇ" else "Bengaluru, 8 May", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
             val status = if (lang == "KN") "ಮೋಡಕವಿದ" else "Cloudy"
             Text("28°C | $status", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
         }
@@ -796,13 +910,13 @@ fun WeatherWidget(onClick: () -> Unit, lang: String) {
 @Composable
 fun WeatherDetailScreen(onBack: () -> Unit, lang: String) {
     val weatherData = listOf(
-        (if (lang == "KN") "ಸೋಮ" else "Mon") to "28°C ☁️",
-        (if (lang == "KN") "ಮಂಗಳ" else "Tue") to "29°C ⛅",
-        (if (lang == "KN") "ಬುಧ" else "Wed") to "27°C 🌧️",
-        (if (lang == "KN") "ಗುರು" else "Thu") to "30°C 🌤️",
-        (if (lang == "KN") "ಶುಕ್ರ" else "Fri") to "31°C ☀️",
-        (if (lang == "KN") "ಶನಿ" else "Sat") to "32°C ☀️",
-        (if (lang == "KN") "ಭಾನು" else "Sun") to "29°C 🌦️"
+        (if (lang == "KN") "ಸೋಮ, 8 ಮೇ" else "Mon, 8 May") to "28°C ☁️",
+        (if (lang == "KN") "ಮಂಗಳ, 9 ಮೇ" else "Tue, 9 May") to "29°C ⛅",
+        (if (lang == "KN") "ಬುಧ, 10 ಮೇ" else "Wed, 10 May") to "27°C 🌧️",
+        (if (lang == "KN") "ಗುರು, 11 ಮೇ" else "Thu, 11 May") to "30°C 🌤️",
+        (if (lang == "KN") "ಶುಕ್ರ, 12 ಮೇ" else "Fri, 12 May") to "31°C ☀️",
+        (if (lang == "KN") "ಶನಿ, 13 ಮೇ" else "Sat, 13 May") to "32°C ☀️",
+        (if (lang == "KN") "ಭಾನು, 14 ಮೇ" else "Sun, 14 May") to "29°C 🌦️"
     )
 
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFFE0F7FA)).verticalScroll(rememberScrollState())) {
